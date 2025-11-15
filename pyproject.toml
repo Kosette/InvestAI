@@ -1,0 +1,7 @@
+[project]
+name = "investai"
+version = "0.1.0"
+description = "AI 驱动的个人投资分析工具"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["loguru>=0.7.3"]
