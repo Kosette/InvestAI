@@ -8,5 +8,6 @@ dependencies = [
     "akshare>=1.17.85",
     "loguru>=0.7.3",
     "numpy>=2.3.5",
+    "orjson>=3.11.4",
     "requests>=2.32.5",
 ]
