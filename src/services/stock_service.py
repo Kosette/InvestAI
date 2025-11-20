@@ -13,27 +13,7 @@ class StockAnalysisService:
     def __init__(self, data_source: StockDataSource = stock_data_source):
         self.data_source = data_source
 
-    def get_latest_valuation(self, symbol: str) -> Dict[str, Any]:
-        """
-        获取最新估值指标，包括 PE、PB、PS 等
-        """
-        try:
-            pe_pb_dict = self.data_source.get_pe_pb(symbol)
-            # 可以只保留常用估值指标
-            valuation = {
-                "PE(TTM)": pe_pb_dict.get("PE(TTM)"),
-                "PE(静)": pe_pb_dict.get("PE(静)"),
-                "PB": pe_pb_dict.get("市净率"),
-                "PS": pe_pb_dict.get("市销率"),
-                "PEG": pe_pb_dict.get("PEG值"),
-                "市现率": pe_pb_dict.get("市现率")
-            }
-            return valuation
-        except Exception as e:
-            logger.error(f"获取 {symbol} 估值失败: {e}")
-            return {}
-
-    def calc_momentum(self, symbol: str, period: str = "daily", window: int = 20) -> Dict[str, Any]:
+    def calc_momentum(self, symbol: str, period: str = "daily", window: int = 20, price_col: str = "收盘") -> Dict[str, Any]:
         """
         基于K线计算股票动量指标
         :param symbol: 股票代码
@@ -45,59 +25,107 @@ class StockAnalysisService:
             return {}
 
         # 计算简单动量：最近收盘价 / N日均价
-        df['MA'] = df['close'].rolling(window=window).mean()
-        df['momentum'] = df['close'] / df['MA'] - 1
+        df['MA'] = df[price_col].rolling(window=window).mean()
+        df['momentum'] = df[price_col] / df['MA'] - 1
         latest = df.iloc[-1]
         return {
             "momentum": latest['momentum'],
-            "close": latest['close'],
+            "close": latest[price_col],
             "MA": latest['MA']
         }
-
-    def evaluate_quality(self, symbol: str) -> Dict[str, Any]:
+    
+    def compute_rsi(self, symbol: str, period: str = "daily", n: int = 30, price_col: str = "收盘"):
         """
-        基于财务指标计算股票质量评分
-        可加入 ROE、净利润增长率、毛利率等因子
+        基于 pandas DataFrame 计算 RSI（简单平均版本）
+        df: 包含收盘价的 DataFrame
+        n : 周期
+        price_col : 收盘价列名
         """
-        financials = self.data_source.get_financials(symbol)
-        if not financials:
-            return {}
+        try:
+            df = self.data_source.get_kline(symbol, period)
+            if df.empty:
+                return None
 
-        # 简单示例：ROE + 净利润增长率 + 销售毛利率综合评分
-        roe = financials.get("净资产收益率(%)") or 0
-        net_profit_growth = financials.get("净利润增长率(%)") or 0
-        gross_margin = financials.get("销售毛利率(%)") or 0
+            # 计算涨跌
+            delta = df[price_col].diff()
 
-        quality_score = (roe + net_profit_growth + gross_margin) / 3
-        return {
-            "roe": roe,
-            "net_profit_growth": net_profit_growth,
-            "gross_margin": gross_margin,
-            "quality_score": quality_score
-        }
+            # 分解涨跌
+            gain = delta.where(delta > 0, 0)
+            loss = -delta.where(delta < 0, 0)
 
-    def generate_report(self, symbol: str) -> Dict[str, Any]:
-        """
-        综合分析报告，包含估值、动量、质量评分等
-        """
-        valuation = self.get_latest_valuation(symbol)
-        momentum = self.calc_momentum(symbol)
-        quality = self.evaluate_quality(symbol)
-        profile = self.data_source.get_company_profile(symbol)
+            # 简单平均（因为你的数据量太小，不适合 Wilder 平滑）
+            avg_gain = gain.rolling(window=n).mean()
+            avg_loss = loss.rolling(window=n).mean()
 
-        report = {
-            "symbol": symbol,
-            "profile": profile,
-            "valuation": valuation,
-            "momentum": momentum,
-            "quality": quality
-        }
-        return report
+            # RS
+            rs = avg_gain / avg_loss
+
+            # RSI
+            rsi = 100 - (100 / (1 + rs))
+            return rsi
+        except Exception as e:
+            logger.error(f"Error computing RSI: {e}")
+            return None
+
+    def check_stock(self, symbol: str) -> bool:
+        try:
+            failed = []
+
+            # ROE
+            if stock_data.get("roe", 0) < config.get("roe_min", 0):
+                failed.append("roe_min")
+            if stock_data.get("roe_trend_years", 0) < config.get("roe_trend_years", 0):
+                failed.append("roe_trend_years")
+
+            # 净利润、营收增长
+            if stock_data.get("net_profit_growth_years", 0) < config.get("net_profit_growth_years", 0):
+                failed.append("net_profit_growth_years")
+            if stock_data.get("revenue_growth_years", 0) < config.get("revenue_growth_years", 0):
+                failed.append("revenue_growth_years")
+
+            # 负债率
+            if config.get("exclude_financial_sector", True) and stock_data.get("is_financial", False):
+                pass  # 金融股忽略负债率
+            else:
+                if stock_data.get("debt_ratio", 100) > config.get("debt_ratio_max", 100):
+                    failed.append("debt_ratio_max")
+
+            # 毛利率/净利率波动
+            if stock_data.get("margin_std", 100) > config.get("margin_std_max", 100):
+                failed.append("margin_std_max")
+
+            # 主营业务占比
+            if stock_data.get("core_business_ratio", 0) < config.get("core_business_ratio_min", 0):
+                failed.append("core_business_ratio_min")
+
+            # PEG
+            if stock_data.get("peg", 100) > config.get("peg_max", 100):
+                failed.append("peg_max")
+
+            # 配股利
+            if config.get("dividend_required", False) and not stock_data.get("dividend", False):
+                failed.append("dividend_required")
+
+            # PB
+            if stock_data.get("pb", 0) < config.get("pb_min", 0):
+                failed.append("pb_min")
+
+            return {
+                "is_quality": len(failed) == 0,
+                "failed_criteria": failed
+            }
+
+        except Exception as e:
+            logger.error(f"Error fetching Kline: {e}")
+            return False
+
+    def filter_stocks(self):
+        pass
 
 
 if __name__ == "__main__":
     service = StockAnalysisService()
-    symbols = ["600519", "000001"]  # 示例股票
-    for symbol in symbols:
-        report = service.generate_report(symbol)
-        logger.info(report)
+    symbol = "600519"  # 示例股票
+    # report = service.calc_momentum(symbol)
+    report = service.compute_rsi(symbol)
+    logger.info(report)
