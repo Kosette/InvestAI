@@ -34,7 +34,7 @@ class StockAnalysisService:
             "MA": latest['MA']
         }
     
-    def compute_rsi(self, symbol: str, period: str = "daily", n: int = 30, price_col: str = "收盘"):
+    def compute_rsi(self, symbol: str, period: str = "daily", n: int = 30, price_col: str = "close"):
         """
         基于 pandas DataFrame 计算 RSI（简单平均版本）
         df: 包含收盘价的 DataFrame
@@ -71,44 +71,34 @@ class StockAnalysisService:
         try:
             failed = []
 
-            # ROE
-            if stock_data.get("roe", 0) < config.get("roe_min", 0):
-                failed.append("roe_min")
-            if stock_data.get("roe_trend_years", 0) < config.get("roe_trend_years", 0):
-                failed.append("roe_trend_years")
+            df = self.data_source.get_last_n_years_financials(symbol)
 
-            # 净利润、营收增长
-            if stock_data.get("net_profit_growth_years", 0) < config.get("net_profit_growth_years", 0):
-                failed.append("net_profit_growth_years")
-            if stock_data.get("revenue_growth_years", 0) < config.get("revenue_growth_years", 0):
-                failed.append("revenue_growth_years")
+            # ROE 最低值
+            if "净资产收益率(%)" in df.columns:
+                last_3_roe = df["净资产收益率(%)"].tail(3).values
+                if not np.all(last_3_roe >= config.roe_min):
+                    failed.append("roe_min")
+                # 连续增长
+                if not np.all(np.diff(last_3_roe) > 0):
+                    failed.append("roe_trend")
 
-            # 负债率
-            if config.get("exclude_financial_sector", True) and stock_data.get("is_financial", False):
-                pass  # 金融股忽略负债率
-            else:
-                if stock_data.get("debt_ratio", 100) > config.get("debt_ratio_max", 100):
-                    failed.append("debt_ratio_max")
+            # 净利润增长
+            if "净利润增长率(%)" in df.columns:
+                last_3_net_profit = df["净利润增长率(%)"].tail(3).values
+                if not np.all(last_3_net_profit > 0):
+                    failed.append("net_profit_growth")
 
-            # 毛利率/净利率波动
-            if stock_data.get("margin_std", 100) > config.get("margin_std_max", 100):
-                failed.append("margin_std_max")
+            # 营业收入增长
+            if "主营业务收入增长率(%)" in df.columns:
+                last_3_revenue = df["主营业务收入增长率(%)"].tail(3).values
+                if not np.all(last_3_revenue > 0):
+                    failed.append("revenue_growth")
 
-            # 主营业务占比
-            if stock_data.get("core_business_ratio", 0) < config.get("core_business_ratio_min", 0):
-                failed.append("core_business_ratio_min")
-
-            # PEG
-            if stock_data.get("peg", 100) > config.get("peg_max", 100):
-                failed.append("peg_max")
-
-            # 配股利
-            if config.get("dividend_required", False) and not stock_data.get("dividend", False):
-                failed.append("dividend_required")
-
-            # PB
-            if stock_data.get("pb", 0) < config.get("pb_min", 0):
-                failed.append("pb_min")
+            # 毛利率/净利率波动标准差
+            if "销售净利率(%)" in df.columns:
+                margin_std = np.nanstd(df["销售净利率(%)"].tail(3).values)
+                if margin_std > config.margin_std_max:
+                    failed.append("margin_std")
 
             return {
                 "is_quality": len(failed) == 0,

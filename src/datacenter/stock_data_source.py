@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 import pandas as pd
 from log import logger
 import orjson
+from datetime import datetime
 
 
 class StockDataSource:
@@ -20,20 +21,20 @@ class StockDataSource:
         :return: pd.DataFrame 包含 date, open, high, low, close, volume 等
         """
         try:
+            if symbol.startswith("0"):
+                symbol = f"sz{symbol}"
+            elif symbol.startswith("6"):
+                symbol = f"sh{symbol}"
             if period == "daily":
-                df = ak.stock_zh_a_hist(symbol=symbol, period="daily", start_date="20200101", adjust=adjust)
-            elif period == "weekly":
-                df = ak.stock_zh_a_hist(symbol=symbol, period="weekly", start_date="20200101", adjust=adjust)
-            elif period == "monthly":
-                df = ak.stock_zh_a_hist(symbol=symbol, period="monthly", start_date="20200101", adjust=adjust)
+                df = ak.stock_zh_a_daily(symbol=symbol, start_date="20200101", adjust=adjust)
             else:
                 raise ValueError(f"Unsupported period: {period}")
             return df
         except Exception as e:
-            logger.error(f"Error fetching Kline: {e}")
+            logger.opt(exception=e).error(f"Error fetching Kline: {e}")
             return pd.DataFrame()
 
-    def get_financials_by_years(self, symbol: str, years: int = 3) -> pd.DataFrame:
+    def get_last_n_years_financials(self, symbol: str, n: int = 3) -> pd.DataFrame:
         """
         获取财务指标数据，例如 ROE, EPS, 净利润等
         :param symbol: 股票代码
@@ -50,12 +51,11 @@ class StockDataSource:
             logger.error(f"Error fetching financials: {e}")
             return pd.DataFrame()
 
-    def get_financials(self, symbol: str, start_year: str = '2025') -> Dict[str, Any]:
+    def get_last_n_years_financials(self, symbol: str, n: int = 3) -> pd.DataFrame:
         """
         获取财务指标数据，例如 ROE, EPS, 净利润等
         :param symbol: 股票代码
-        :return: 字典形式的财务指标
-        {
+        :return: pd.DataFrame 包含财务指标
             "日期": "2025-03-31",
             "摊薄每股收益(元)": 22.1101,
             "加权每股收益(元)": 21.38,
@@ -142,14 +142,13 @@ class StockDataSource:
             "1-2年以内其它应收款(元)": null,
             "2-3年以内其它应收款(元)": null,
             "3年以内其它应收款(元)": null
-        }
         """
         try:
+            start_year = str(datetime.now().year - n)
             df = ak.stock_financial_analysis_indicator(symbol=symbol, start_year=start_year)
             # 可以根据需要提取最新一行数据
             if not df.empty:
-                latest = df.iloc[0].to_dict()
-                return latest
+                return df
             else:
                 logger.warning(f"未获取到 {symbol} 的财务指标数据。")
                 return {}
@@ -238,9 +237,9 @@ stock_data_source = StockDataSource()
 
 if __name__ == "__main__":
     # res = stock_data_source.get_company_profile("600519")
-    # res = stock_data_source.get_financials("600519")
     # logger.info(orjson.dumps(res,option=orjson.OPT_INDENT_2).decode())
     # df = stock_data_source.get_pe_pb("600519")
-    df = stock_data_source.get_all_a_shares()
-    # df = stock_data_source.get_kline("600519")
+    # df = stock_data_source.get_all_a_shares()
+    # df = stock_data_source.get_last_n_years_financials("600519")
+    df = stock_data_source.get_kline("600519")
     logger.info(df.tail())
