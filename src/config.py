@@ -21,3 +21,5 @@ class QualityStockConfig:
     core_business_ratio_min = float(os.getenv("CORE_BUSINESS_RATIO_MIN", 0.8))  # 主营业务收入占比下限
     peg_max = float(os.getenv("PEG_MAX", 1.5))                     # PEG 最大值
     pb_min = float(os.getenv("PB_MIN", 1))                          # 市净率 PB 下限
+
+
