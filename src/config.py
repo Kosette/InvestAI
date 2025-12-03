@@ -23,3 +23,5 @@ class QualityStockConfig:
     pb_min = float(os.getenv("PB_MIN", 1))                          # 市净率 PB 下限
 
 
+class Config:
+    QualityStockConfig = QualityStockConfig

@@ -223,7 +223,6 @@ class StockDataSource:
             5450  920992  中科美菱
         """
         try:
-            # 获取东方财富A股实时行情数据
             # 实际返回的是所有A股的列表及实时数据
             stock_list_df = ak.stock_info_a_code_name()
             return stock_list_df
