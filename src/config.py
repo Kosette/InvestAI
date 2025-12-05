@@ -4,6 +4,7 @@ import os
 load_dotenv()
 
 LOG_PATH = "./logs"
+WATCHLIST_PATH = "./watchlist.json"
 
 class QualityStockConfig:
     """

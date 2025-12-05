@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "akshare>=1.17.85",
+    "fastmcp>=2.13.3",
     "loguru>=0.7.3",
     "numpy>=2.3.5",
     "orjson>=3.11.4",
