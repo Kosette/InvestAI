@@ -26,3 +26,4 @@ class QualityStockConfig:
 
 class Config:
     QualityStockConfig = QualityStockConfig
+    SlackToken = os.getenv("SLACK_TOKEN")
