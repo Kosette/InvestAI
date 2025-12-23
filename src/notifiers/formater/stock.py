@@ -1,0 +1,76 @@
+from datetime import datetime
+from notifiers.formater.base import get_trend_emoji
+
+
+def format_trend_signal_message(data: dict) -> str:
+    """
+    将趋势监控结果格式化为 Slack / 飞书通知文案
+    """
+
+    name = data.get("name")
+    price = data.get("price")
+    ma20 = data.get("ma20")
+    ma60 = data.get("ma60")
+    trend = data.get("trend")
+    pullback = data.get("pullback")
+    breakout = data.get("breakout")
+    rsi = data.get("rsi")
+    cci = data.get("cci")
+
+    # === 趋势描述 ===
+    trend_desc_map = {
+        "risk_on": "趋势向好（risk_on）",
+        "neutral": "震荡整理（neutral）",
+        "risk_off": "风险偏弱（risk_off）"
+    }
+    trend_desc = trend_desc_map.get(trend, trend)
+
+    # === 结构判断 ===
+    pullback_desc = "已形成" if pullback else "未形成"
+    breakout_desc = "已确认" if breakout else "未确认"
+
+    # === RSI / CCI 择时描述 ===
+    rsi_ok = 40 <= rsi <= 65
+    cci_ok = -100 <= cci <= 100
+
+    if rsi_ok:
+        rsi_desc = "处于有效区间"
+    elif rsi < 40:
+        rsi_desc = "偏弱"
+    else:
+        rsi_desc = "偏强"
+
+    if cci_ok:
+        cci_desc = "处于正常波动区间"
+    elif cci < -100:
+        cci_desc = "超卖"
+    else:
+        cci_desc = "过热"
+
+    # === 综合判断 ===
+    if trend == "risk_on" and (pullback or breakout) and rsi_ok and cci_ok:
+        final_desc = "满足趋势与择时条件，具备趋势型买入信号。"
+    else:
+        final_desc = (
+            "当前趋势或结构 / 择时条件不满足，"
+            "暂不具备趋势型买入条件，建议继续观望。"
+        )
+
+    # === 拼装消息 ===
+    message = (
+        f"{get_trend_emoji(trend)} 股票监控信号更新\n\n"
+        f"股票名称：{name}\n"
+        f"当前价格：{price:.2f}\n"
+        f"MA20 / MA60：{ma20:.2f} / {ma60:.2f}\n"
+        f"市场趋势：{trend_desc}\n\n"
+        f"结构判断：\n"
+        f"- 回调形态：{pullback_desc}\n"
+        f"- 突破形态：{breakout_desc}\n\n"
+        f"择时指标（软约束）：\n"
+        f"- RSI：{rsi:.1f}（{rsi_desc}）\n"
+        f"- CCI：{cci:.1f}（{cci_desc}）\n\n"
+        f"综合判断：\n"
+        f"{final_desc}\n\n"
+    )
+
+    return message

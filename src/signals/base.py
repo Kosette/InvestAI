@@ -1,18 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
+from enum import Enum
 
-
-class SignalResult:
-    def __init__(self, triggered: bool, score: float, reason: Dict[str, Any]):
-        self.triggered = triggered
-        self.score = score
-        self.reason = reason
+class SignalType(Enum):
+    RISK_ON = "上升趋势，可以考虑买入"
+    NEUTRAL = "建议观望"
+    RISK_OFF = "弱势，请注意避险"
 
 
 class BaseSignal(ABC):
 
     @abstractmethod
-    def evaluate(self, symbol: str, context: Dict[str, Any]) -> SignalResult:
+    def evaluate(self, context: Dict[str, Any]) -> dict:
         """
         context 中包含：
         - 行情数据

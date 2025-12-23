@@ -1,8 +1,6 @@
 import akshare as ak
-from typing import Optional, Dict, Any
 import pandas as pd
 from log import logger
-import orjson
 from datetime import datetime
 
 
@@ -21,10 +19,6 @@ class StockDataSource:
         :return: pd.DataFrame 包含 date, open, high, low, close, volume 等
         """
         try:
-            if symbol.startswith("0"):
-                symbol = f"sz{symbol}"
-            elif symbol.startswith("6"):
-                symbol = f"sh{symbol}"
             if period == "daily":
                 df = ak.stock_zh_a_daily(symbol=symbol, start_date="20200101", adjust=adjust)
             else:
@@ -240,5 +234,5 @@ if __name__ == "__main__":
     # df = stock_data_source.get_pe_pb("600519")
     # df = stock_data_source.get_all_a_shares()
     # df = stock_data_source.get_last_n_years_financials("600519")
-    df = stock_data_source.get_kline("600519")
+    df = stock_data_source.get_kline("sh600845")
     logger.info(df.tail())

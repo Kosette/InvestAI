@@ -6,24 +6,50 @@ load_dotenv()
 LOG_PATH = "./logs"
 WATCHLIST_PATH = "./watchlist.json"
 
-class QualityStockConfig:
-    """
-    优质股筛选配置类
-    所有参数为类变量，可通过环境变量动态覆盖默认值
-    """
+# ======================
+# 股票池配置
+# ======================
 
-    # 核心财务指标
-    roe_min = float(os.getenv("ROE_MIN", 8))                        # 最低净资产收益率 ROE (%)
-    roe_trend_years = int(os.getenv("ROE_TREND_YEARS", 3))         # ROE 连续增长的年份数
-    net_profit_growth_years = int(os.getenv("NET_PROFIT_GROWTH_YEARS", 3))  # 净利润连续增长的年份数
-    revenue_growth_years = int(os.getenv("REVENUE_GROWTH_YEARS", 3))        # 营业收入连续增长的年份数
-    debt_ratio_max = float(os.getenv("DEBT_RATIO_MAX", 60))        # 最大资产负债率 (%)
-    margin_std_max = float(os.getenv("MARGIN_STD_MAX", 5))         # 毛利率/净利率波动标准差上限 (%)
-    core_business_ratio_min = float(os.getenv("CORE_BUSINESS_RATIO_MIN", 0.8))  # 主营业务收入占比下限
-    peg_max = float(os.getenv("PEG_MAX", 1.5))                     # PEG 最大值
-    pb_min = float(os.getenv("PB_MIN", 1))                          # 市净率 PB 下限
+STOCK_POOL = [
+    "600519.SH",
+    "000001.SZ",
+    "300750.SZ",
+]
+
+
+# ======================
+# 监控与策略参数配置
+# ======================
+
+MONITOR_CONFIG = {
+    # ====== 趋势策略参数 ======
+    "trend": {
+        "pullback_threshold": 0.03,   # 回调幅度（3%）
+        "resistance_window": 20,      # 阻力位计算窗口
+        "breakout_buffer": 0.005,     # 突破缓冲（0.5%）
+    },
+
+    # ====== 成交量 ======
+    "volume": {
+        "ma_window": 20,
+        "min_ratio": 1.0,             # volume > volume_ma * ratio
+    },
+
+    # ====== 择时指标 ======
+    "rsi": {
+        "min": 40,
+        "max": 65,
+    },
+    "cci": {
+        "min": -100,
+        "max": 100,
+    },
+
+}
+
 
 
 class Config:
-    QualityStockConfig = QualityStockConfig
-    SlackToken = os.getenv("SLACK_TOKEN")
+    SLACK_TOKEN = os.getenv("SLACK_TOKEN")
+
+
