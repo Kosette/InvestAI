@@ -1,23 +1,21 @@
-from apscheduler.schedulers.blocking import BlockingScheduler
-
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers.background import BackgroundScheduler
 from engine.monitor import StockMonitor
-from config.settings import STOCK_POOL, MONITOR_CONFIG
+from config import WATCHLIST, INDEX_POOL
 
 
 def start_scheduler():
     monitor = StockMonitor(
-        stock_pool=STOCK_POOL,
-        config=MONITOR_CONFIG
+        watchlist=WATCHLIST,
+        index_pool=INDEX_POOL,
     )
 
-    scheduler = BlockingScheduler(timezone="Asia/Shanghai")
+    scheduler = BackgroundScheduler()
 
-    # 每 5 分钟扫描一次
     scheduler.add_job(
-        monitor.run_once,
-        trigger="interval",
-        minutes=5,
-        id="stock_monitor"
+        monitor,
+        CronTrigger(hour=14, minute=0)
     )
+
 
     scheduler.start()

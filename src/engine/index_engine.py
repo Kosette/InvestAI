@@ -3,17 +3,8 @@ from loguru import logger
 from signals.structrue_signal import StructureSignal
 from notifiers.formater.index import format_index_trend_message
 
-INDEX_CODES = {
-    "沪深300": "sh000300",
-    # "中证500": "sh000905",
-    # "中证1000": "sh000852",
-}
-
 
 class IndexEngine:
-    def __init__(self, index_codes: dict = INDEX_CODES):
-        self.index_codes = index_codes
-
     def evaluate(self, index_code: str):
         context = {}
         context["kline"] = index_data_source.get_kline(index_code)

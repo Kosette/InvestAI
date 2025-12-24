@@ -1,86 +1,59 @@
 from loguru import logger
-from engine.signal_engine import SignalEngine
-
-
-class IndexMonitor:
-    def __init__(self, stock_pool, config):
-        self.stock_pool = stock_pool
-        self.config = config
-        self.signal_engine = SignalEngine(config)
-
-    def run_once(self):
-        """
-        单次扫描（可被 scheduler 调用）
-        """
-        for symbol in self.stock_pool:
-            try:
-                self._check_symbol(symbol)
-            except Exception as e:
-                logger.exception(f"Error processing {symbol}: {e}")
-
-    def _check_symbol(self, symbol: str):
-        data = load_market_data(symbol)
-        indicators = calc_indicators(data)
-
-        prices = data["close"]
-        volumes = data["volume"]
-
-        market_ctx = {
-            "prices": prices,
-            "volumes": volumes,
-            "ma20": indicators["ma20"],
-            "ma60": indicators["ma60"],
-            "resistance": calc_resistance(prices),
-            "volume_ma": indicators["volume_ma"],
-            "rsi": indicators["rsi"],
-            "cci": indicators["cci"],
-        }
-
-        result = self.signal_engine.evaluate(market_ctx)
-
-        if result["triggered"]:
-            message = self._format_message(symbol, market_ctx, result)
-            send_slack_message(message)
-
+from .signal_engine import SignalEngine
+from .index_engine import IndexEngine
+from notifiers.formater.index import format_index_trend_message
+from notifiers.formater.stock import format_trend_signal_message
+from config import WATCHLIST, INDEX_POOL
+from notifiers.slack import send_slack_msg
+import time
 
 class StockMonitor:
-    def __init__(self, stock_pool, config):
-        self.stock_pool = stock_pool
+    def __init__(self, watchlist: dict = WATCHLIST, index_pool: dict = INDEX_POOL, config: dict = {}):
+        self.watchlist = watchlist  
+        self.index_pool = index_pool
         self.config = config
-        self.signal_engine = SignalEngine(config)
 
-    def run_once(self):
-        """
-        单次扫描（可被 scheduler 调用）
-        """
-        for symbol in self.stock_pool:
+    def check_index(self, index_symbol: str, index_name: str):
+        index_engine = IndexEngine()
+        context = index_engine.evaluate(index_symbol)
+        result = context['result']
+        result.update({
+            "name": index_name,
+        })
+        message = format_index_trend_message(result)
+        logger.debug(message)
+        send_slack_msg(message)
+
+
+    def check_stock(self, symbol: str, stock_name: str):
+        signal_engine = SignalEngine()
+        context = signal_engine.evaluate(symbol)
+        result = context['result']
+        result.update({
+            "name": stock_name,
+        })
+        message = format_trend_signal_message(result)
+        logger.debug(message)
+        send_slack_msg(message)
+
+
+    def run(self):
+        for name, symbol in self.index_pool.items():
             try:
-                self._check_symbol(symbol)
+                self.check_index(symbol, name)
+                time.sleep(1)
             except Exception as e:
                 logger.exception(f"Error processing {symbol}: {e}")
 
-    def _check_symbol(self, symbol: str):
-        data = load_market_data(symbol)
-        indicators = calc_indicators(data)
-
-        prices = data["close"]
-        volumes = data["volume"]
-
-        market_ctx = {
-            "prices": prices,
-            "volumes": volumes,
-            "ma20": indicators["ma20"],
-            "ma60": indicators["ma60"],
-            "resistance": calc_resistance(prices),
-            "volume_ma": indicators["volume_ma"],
-            "rsi": indicators["rsi"],
-            "cci": indicators["cci"],
-        }
-
-        result = self.signal_engine.evaluate(market_ctx)
-
-        if result["triggered"]:
-            message = self._format_message(symbol, market_ctx, result)
-            send_slack_message(message)
-
+        for name, symbol in self.watchlist.items():
+            try:
+                self.check_stock(symbol, name)
+                time.sleep(1)
+            except Exception as e:
+                logger.exception(f"Error processing {symbol}: {e}")
  
+
+
+if __name__ == "__main__":
+    monitor = StockMonitor()
+    monitor.run()
