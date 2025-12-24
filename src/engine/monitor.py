@@ -3,12 +3,11 @@ from .signal_engine import SignalEngine
 from .index_engine import IndexEngine
 from notifiers.formater.index import format_index_trend_message
 from notifiers.formater.stock import format_trend_signal_message
-from config import WATCHLIST, INDEX_POOL
 from notifiers.slack import send_slack_msg
 import time
 
 class StockMonitor:
-    def __init__(self, watchlist: dict = WATCHLIST, index_pool: dict = INDEX_POOL, config: dict = {}):
+    def __init__(self, watchlist: dict, index_pool: dict, config: dict = {}):
         self.watchlist = watchlist  
         self.index_pool = index_pool
         self.config = config
@@ -55,5 +54,13 @@ class StockMonitor:
 
 
 if __name__ == "__main__":
-    monitor = StockMonitor()
+    from tools.watch_list import load_watchlist
+    from tools.index_tool import load_index_pool
+    from config import WATCHLIST_PATH, INDEX_POOL_PATH
+    watchlist = load_watchlist(WATCHLIST_PATH)
+    index_pool = load_index_pool(INDEX_POOL_PATH)
+    monitor = StockMonitor(
+        watchlist=watchlist,
+        index_pool=index_pool,
+    )
     monitor.run()

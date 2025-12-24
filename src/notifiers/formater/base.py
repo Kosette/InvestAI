@@ -1,10 +1,13 @@
-def get_trend_emoji(trend: str) -> str:
+from signals.base import TrendType
+
+def get_trend_emoji(trend: TrendType) -> str:
     """
     根据市场/趋势状态返回对应 Emoji
     """
     emoji_map = {
-        "risk_on": "📈",
-        "neutral": "📊",
-        "risk_off": "📉",
+        TrendType.UPTREND: "📈",
+        TrendType.NEUTRAL: "📊",
+        TrendType.DOWNTREND: "📉",
     }
     return emoji_map.get(trend, "❔")
+

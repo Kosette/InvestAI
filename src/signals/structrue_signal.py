@@ -1,5 +1,5 @@
 from signals.base import BaseSignal
-
+from signals.base import TrendType
 
 class StructureSignal(BaseSignal):
 
@@ -16,11 +16,11 @@ class StructureSignal(BaseSignal):
         price = df[price_col].iloc[-1].round(2)
 
         if price > ma20 > ma60:
-            trend =  "risk_on"
+            trend =  TrendType.UPTREND
         elif price > ma60:
-            trend = "neutral"
+            trend = TrendType.NEUTRAL
         else:
-            trend = "risk_off"
+            trend = TrendType.DOWNTREND
 
         prev_price = df[price_col].iloc[-2].round(2)
         resistance = max(df[price_col].iloc[-20:])

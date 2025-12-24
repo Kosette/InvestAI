@@ -1,5 +1,6 @@
-from datetime import datetime
 from notifiers.formater.base import get_trend_emoji
+from signals.base import TrendType
+
 
 
 def format_trend_signal_message(data: dict) -> str:
@@ -16,14 +17,6 @@ def format_trend_signal_message(data: dict) -> str:
     breakout = data.get("breakout")
     rsi = data.get("rsi")
     cci = data.get("cci")
-
-    # === 趋势描述 ===
-    trend_desc_map = {
-        "risk_on": "趋势向好（risk_on）",
-        "neutral": "震荡整理（neutral）",
-        "risk_off": "风险偏弱（risk_off）"
-    }
-    trend_desc = trend_desc_map.get(trend, trend)
 
     # === 结构判断 ===
     pullback_desc = "已形成" if pullback else "未形成"
@@ -48,7 +41,7 @@ def format_trend_signal_message(data: dict) -> str:
         cci_desc = "过热"
 
     # === 综合判断 ===
-    if trend == "risk_on" and (pullback or breakout) and rsi_ok and cci_ok:
+    if trend == TrendType.UPTREND and (pullback or breakout) and rsi_ok and cci_ok:
         final_desc = "满足趋势与择时条件，具备趋势型买入信号。"
     else:
         final_desc = (
@@ -58,11 +51,10 @@ def format_trend_signal_message(data: dict) -> str:
 
     # === 拼装消息 ===
     message = (
-        f"{get_trend_emoji(trend)} 股票监控信号更新\n\n"
-        f"股票名称：{name}\n"
+        f"股票名称：{name}{get_trend_emoji(trend)}\n"
         f"当前价格：{price:.2f}\n"
         f"MA20 / MA60：{ma20:.2f} / {ma60:.2f}\n"
-        f"市场趋势：{trend_desc}\n\n"
+        f"市场趋势：{trend.value}\n\n"
         f"结构判断：\n"
         f"- 回调形态：{pullback_desc}\n"
         f"- 突破形态：{breakout_desc}\n\n"
@@ -71,6 +63,7 @@ def format_trend_signal_message(data: dict) -> str:
         f"- CCI：{cci:.1f}（{cci_desc}）\n\n"
         f"综合判断：\n"
         f"{final_desc}\n\n"
+        f"━━━━━━━━━━━━━━━━"
     )
 
     return message

@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 from enum import Enum
 
-class SignalType(Enum):
-    RISK_ON = "上升趋势，可以考虑买入"
+class TrendType(Enum):
+    UPTREND = "上升趋势，可以考虑买入"
     NEUTRAL = "建议观望"
-    RISK_OFF = "弱势，请注意避险"
+    DOWNTREND = "弱势，请注意避险"
 
 
 class BaseSignal(ABC):

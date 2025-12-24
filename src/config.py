@@ -4,24 +4,8 @@ import os
 load_dotenv()
 
 LOG_PATH = "./logs"
-WATCHLIST_PATH = "./watchlist.json"
-
-# ======================
-# 股票池配置
-# ======================
-INDEX_POOL = {
-    "沪深300": "sh000300",
-    "中证500": "sh000905",
-    "中证1000": "sh000852",
-}
-
-
-WATCHLIST = {
-    "宝信软件": "sh600845",
-    "润本股份": "sh603193",
-    "TCL中环": "sz002129",
-}
-
+WATCHLIST_PATH = "./conf/watchlist.json"
+INDEX_POOL_PATH = "./conf/index_pool.json"
 
 # ======================
 # 监控与策略参数配置
