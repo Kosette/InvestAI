@@ -1,26 +1,32 @@
 # server.py
 from fastmcp import FastMCP
-from .config import WATCHLIST_PATH
-import json
-
-
+from log import logger
+from tools.watch_list import add_to_watchlist
+from config import WATCHLIST_PATH
+from utils.code import get_fullcode
+from datacenter.market.stock import stock_data_source
 
 mcp = FastMCP("InvestAI 🚀")
 
-@app.tool()
-async def add_watchlist(item: dict):
+@mcp.tool()
+async def add_watchlist(code: str):
     """
-    添加股票到观察列表
+    将添加股票code到观察列表
+
+    参数:
+        code: 股票代码
+
+    返回:
+    字典，包含成功信息。
     """
-    current_watchlist = []
-    with open(WATCHLIST_PATH, "r", encoding="utf-8") as f:
-        current_watchlist = json.load(f)
-    current_watchlist.append(item)
-    with open(WATCHLIST_PATH, "w", encoding="utf-8") as f:
-        json.dump(current_watchlist, f, ensure_ascii=False, indent=4)
-    return {"status": "ok", "message": f"Watchlist updated: {WATCHLIST_PATH}"}
+    fullcode = get_fullcode(code)
+    data = stock_data_source.get_company_profile(fullcode)
+    name = data.get('股票简称') 
+    logger.info(f"添加股票 {fullcode}({name}) 到监控列表")
+    add_to_watchlist(WATCHLIST_PATH, {"code": fullcode, "name": name})
+    return {"status": "ok", "message": f"{fullcode}({name}) 已添加到监控列表"}
 
 
 # ----------- 启动服务器 ------------
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="http", host="0.0.0.0", port=8888)

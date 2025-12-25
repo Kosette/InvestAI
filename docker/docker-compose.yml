@@ -12,3 +12,18 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - SLACK_TOKEN=${SLACK_TOKEN:-}
+  invest-mcp:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mcp
+    container_name: invest-mcp
+    restart: unless-stopped
+
+    volumes:
+      - ../conf:/app/conf
+    ports:
+      - 8888:8888
+
+    environment:
+      - TZ=Asia/Shanghai
+      - SLACK_TOKEN=${SLACK_TOKEN:-}

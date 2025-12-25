@@ -5,8 +5,8 @@ USER root
 WORKDIR /app
 COPY ./src /app
 COPY pyproject.toml uv.lock /app/
-COPY docker/run_monitor.sh /app/run_monitor.sh
-RUN chmod +x /app/run_monitor.sh
+COPY docker/run_mcp.sh /app/run_mcp.sh
+RUN chmod +x /app/run_mcp.sh
 
 # 设置时区
 ENV TZ=Asia/Shanghai
@@ -14,4 +14,4 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN uv sync --index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-CMD ["/app/run_monitor.sh"]
+CMD ["/app/run_mcp.sh"]

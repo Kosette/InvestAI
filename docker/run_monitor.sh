@@ -2,5 +2,5 @@
 set -e
 
 # 启动应用
-echo "Starting application..."
+echo "Starting monitor ..."
 exec uv run python run_monitor.py
