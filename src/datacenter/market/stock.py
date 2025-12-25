@@ -152,7 +152,7 @@ class StockDataSource:
 
     # 获取个股概要信息
     def get_company_profile(self, symbol: str):
-        f"""
+        """
         通过东方财富接口获取指定股票代码的公司基本信息。
         :param symbol: 股票代码，如 '600519' (贵州茅台)
         :return: 
