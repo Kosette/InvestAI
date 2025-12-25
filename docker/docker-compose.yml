@@ -1,0 +1,14 @@
+services:
+  invest-monitor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.monitor
+    container_name: invest-monitor
+    restart: unless-stopped
+
+    volumes:
+      - ../conf:/app/conf
+
+    environment:
+      - TZ=Asia/Shanghai
+      - SLACK_TOKEN=${SLACK_TOKEN:-}
