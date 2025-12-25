@@ -1,5 +1,6 @@
 from signals.base import BaseSignal
 from signals.base import TrendType
+from config import STRATEGY_CONFIG
 
 class StructureSignal(BaseSignal):
 
@@ -9,7 +10,7 @@ class StructureSignal(BaseSignal):
         df['ma20'] = df[price_col].rolling(window=20).mean()
         df['ma60'] = df[price_col].rolling(window=60).mean()
 
-        pullback_threshold = 0.03
+        pullback_threshold = STRATEGY_CONFIG.trend.pullback_threshold
         
         ma20 = df["ma20"].iloc[-1].round(2)
         ma60 = df["ma60"].iloc[-1].round(2)
@@ -33,7 +34,7 @@ class StructureSignal(BaseSignal):
 
         breakout = (
             prev_price <= resistance and
-            price > resistance * 1.005
+            price > resistance * (1 + STRATEGY_CONFIG.trend.breakout_buffer)
         )
         return {
             "price": price,

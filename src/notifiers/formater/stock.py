@@ -1,5 +1,6 @@
 from notifiers.formater.base import get_trend_emoji
 from signals.base import TrendType
+from config import STRATEGY_CONFIG
 
 
 
@@ -23,19 +24,19 @@ def format_trend_signal_message(data: dict) -> str:
     breakout_desc = "已确认" if breakout else "未确认"
 
     # === RSI / CCI 择时描述 ===
-    rsi_ok = 40 <= rsi <= 65
-    cci_ok = -100 <= cci <= 100
+    rsi_ok = STRATEGY_CONFIG.rsi.min <= rsi <= STRATEGY_CONFIG.rsi.max
+    cci_ok = STRATEGY_CONFIG.cci.min <= cci <= STRATEGY_CONFIG.cci.max
 
     if rsi_ok:
         rsi_desc = "处于有效区间"
-    elif rsi < 40:
+    elif rsi < STRATEGY_CONFIG.rsi.min:
         rsi_desc = "偏弱"
     else:
         rsi_desc = "偏强"
 
     if cci_ok:
         cci_desc = "处于正常波动区间"
-    elif cci < -100:
+    elif cci < STRATEGY_CONFIG.cci.min:
         cci_desc = "超卖"
     else:
         cci_desc = "过热"

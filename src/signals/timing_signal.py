@@ -3,6 +3,7 @@ from pandas import DataFrame
 from loguru import logger
 import numpy as np
 from signals.base import TrendType
+from config import STRATEGY_CONFIG
 
 class TimingSignal(BaseSignal):
    def compute_cci(
@@ -94,7 +95,7 @@ class TimingSignal(BaseSignal):
 
         breakout = (
             prev_price <= resistance and
-            price > resistance * 1.005
+            price > resistance * (1 + STRATEGY_CONFIG.trend.breakout_buffer)
         )
         return {
             "price": price,
