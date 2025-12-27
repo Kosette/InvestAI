@@ -1,7 +1,7 @@
 # server.py
 from fastmcp import FastMCP
 from log import logger
-from tools.watch_list import add_to_watchlist
+from tools.watch_list import add_to_watchlist, load_watchlist
 from config import WATCHLIST_PATH
 from utils.code import get_fullcode
 from datacenter.market.stock import stock_data_source
@@ -55,6 +55,16 @@ async def add_watchlist(code: str):
     add_to_watchlist(WATCHLIST_PATH, {"code": fullcode, "name": name})
     return {"status": "ok", "message": f"{fullcode}({name}) 已添加到监控列表"}
 
+@mcp.tool()
+async def get_watchlist():
+    """
+    获取当前观察列表
+
+    返回:
+    字典，包含观察列表。
+    """
+    watchlist = load_watchlist(WATCHLIST_PATH)
+    return {"status": "ok", "watchlist": watchlist}
 
 # ----------- 启动服务器 ------------
 if __name__ == "__main__":
