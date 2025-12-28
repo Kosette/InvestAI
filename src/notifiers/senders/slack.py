@@ -11,7 +11,7 @@ from loguru import logger
 class SlackSender(BaseChannelSender):
 
     def send(self, channel_config: SlackChannelConfig, message: str):
-        logger.debug(f"SlackSender send message: {channel_config.token}, {channel_config.default_channel}, {message}")
+        # logger.debug(f"SlackSender send message: {channel_config.token}, {channel_config.default_channel}, {message}")
         client = WebClient(token=channel_config.token)
 
         try:

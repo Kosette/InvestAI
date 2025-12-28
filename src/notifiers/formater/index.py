@@ -1,6 +1,6 @@
 from notifiers.formater.base import get_trend_emoji
 from signals.base import TrendType
-
+from config import STRATEGY_CONFIG
 
 
 def format_index_trend_message(data: dict) -> str:
@@ -10,8 +10,8 @@ def format_index_trend_message(data: dict) -> str:
 
     name = data.get("name")
     price = data.get("price")
-    ma20 = data.get("ma20")
-    ma60 = data.get("ma60")
+    ma_short = data.get("ma_short")
+    ma_long = data.get("ma_long")
     trend = data.get("trend")
     pullback = data.get("pullback")
     breakout = data.get("breakout")
@@ -39,7 +39,7 @@ def format_index_trend_message(data: dict) -> str:
     message = (
         f"指数：{name}{get_trend_emoji(trend)}\n"
         f"当前点位：{price:.2f}\n"
-        f"MA20 / MA60：{ma20:.2f} / {ma60:.2f}\n"
+        f"MA_{STRATEGY_CONFIG.trend.moving_averages.short} / MA{STRATEGY_CONFIG.trend.moving_averages.long}：{ma_short:.2f} / {ma_long:.2f}\n"
         f"趋势状态：{trend.value}\n\n"
         f"结构观察：\n"
         f"- {pullback_desc}\n"

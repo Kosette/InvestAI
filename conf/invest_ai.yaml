@@ -2,6 +2,10 @@
 # 通知系统配置
 # =====================
 
+schedule:
+  hour: 14
+  minute: 05
+
 notification:
   enabled: true
 

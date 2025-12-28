@@ -6,6 +6,7 @@ from tools.watch_list import load_watchlist
 from config import WATCHLIST_PATH, INDEX_POOL_PATH
 from log import logger
 from datetime import datetime
+from config import SCHEDULE_CONFIG
 from notifiers.manager import notification_manager
 
 def format_time_marker() -> str:
@@ -29,7 +30,7 @@ def start_scheduler():
     scheduler = BlockingScheduler()
     scheduler.add_job(
         start_monitor,
-        CronTrigger(hour=20, minute=20),
+        CronTrigger(hour=SCHEDULE_CONFIG.hour, minute=SCHEDULE_CONFIG.minute),
         coalesce=True,
         misfire_grace_time=3600  # 允许 1 小时内补跑
     )

@@ -1,7 +1,7 @@
 import yaml
 from pathlib import Path
 from .strategy import StrategyConfig
-from .config import NotificationConfig
+from .config import NotificationConfig, ScheduleConfig
 import os
 import re
 
@@ -58,3 +58,10 @@ def load_notification_config(path: str) -> NotificationConfig:
     raw = inject_env_vars(raw)
     
     return NotificationConfig.model_validate(raw["notification"])
+
+
+def load_schedule_config(path: str | Path) -> ScheduleConfig:
+    with open(path, "r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+    
+    return ScheduleConfig.model_validate(raw["schedule"])

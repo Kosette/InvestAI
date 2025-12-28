@@ -76,3 +76,8 @@ class NotificationConfig(BaseModel):
     enabled: bool
 
     channels: Dict[str, NotificationChannelConfig]
+
+
+class ScheduleConfig(BaseModel):
+    hour: int = Field(..., ge=0, le=23)
+    minute: int = Field(..., ge=0, le=59)
