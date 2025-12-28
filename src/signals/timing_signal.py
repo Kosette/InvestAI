@@ -1,109 +1,160 @@
-from signals.base import BaseSignal
+from signals.base import BaseSignal, TrendType
 from pandas import DataFrame
 from loguru import logger
 import numpy as np
-from signals.base import TrendType
 from config import STRATEGY_CONFIG
 
+
 class TimingSignal(BaseSignal):
-   def compute_cci(
-      self,
-      df: DataFrame,
-      high_col: str,
-      low_col: str,
-      close_col: str,
-      n: int = 20
-   ):
-      try:
-         if df.empty:
-               return None
 
-         # 1️⃣ Typical Price
-         tp = (df[high_col] + df[low_col] + df[close_col]) / 3
+    PRICE_COL = "close"
+    HIGH_COL = "high"
+    LOW_COL = "low"
 
-         # 2️⃣ TP 的简单移动平均
-         tp_sma = tp.rolling(window=n).mean()
+    # =====================
+    # Indicator Computation
+    # =====================
+    def compute_cci(
+        self,
+        df: DataFrame,
+        high_col: str,
+        low_col: str,
+        close_col: str,
+        n: int
+    ):
+        try:
+            if df.empty:
+                return None
 
-         # 3️⃣ 平均绝对偏差（Mean Deviation）
-         mean_dev = tp.rolling(window=n).apply(
-               lambda x: np.mean(np.abs(x - x.mean())),
-               raw=True
-         )
+            tp = (df[high_col] + df[low_col] + df[close_col]) / 3
+            tp_sma = tp.rolling(window=n).mean()
+            mean_dev = tp.rolling(window=n).apply(
+                lambda x: np.mean(np.abs(x - x.mean())),
+                raw=True
+            )
 
-         # 4️⃣ CCI
-         cci = (tp - tp_sma) / (0.015 * mean_dev)
+            return (tp - tp_sma) / (0.015 * mean_dev)
 
-         return cci
+        except Exception as e:
+            logger.error(f"Error computing CCI: {e}")
+            return None
 
-      except Exception as e:
-         logger.error(f"Error computing CCI: {e}")
-         return None
+    def compute_rsi(self, df: DataFrame, price_col: str, n: int):
+        try:
+            if df.empty:
+                return None
 
-   def compute_rsi(self, df: DataFrame, price_col:str, n:int = 30):
-      try:
-         if df.empty:
-               return None
+            delta = df[price_col].diff()
+            gain = delta.where(delta > 0, 0)
+            loss = -delta.where(delta < 0, 0)
 
-         # 计算涨跌
-         delta = df[price_col].diff()
+            avg_gain = gain.rolling(window=n).mean()
+            avg_loss = loss.rolling(window=n).mean()
 
-         # 分解涨跌
-         gain = delta.where(delta > 0, 0)
-         loss = -delta.where(delta < 0, 0)
+            rs = avg_gain / avg_loss
+            return 100 - (100 / (1 + rs))
 
-         # 简单平均（因为你的数据量太小，不适合 Wilder 平滑）
-         avg_gain = gain.rolling(window=n).mean()
-         avg_loss = loss.rolling(window=n).mean()
+        except Exception as e:
+            logger.error(f"Error computing RSI: {e}")
+            return None
 
-         # RS
-         rs = avg_gain / avg_loss
-
-         # RSI
-         rsi = 100 - (100 / (1 + rs))
-         return rsi
-      except Exception as e:
-         logger.error(f"Error computing RSI: {e}")
-         return None
-
-   def evaluate(self, context: dict):
-        price_col = 'close'
+    # =====================
+    # Signal Evaluation
+    # =====================
+    def evaluate(self, context: dict):
         df = context["kline"]
-        df['ma20'] = df[price_col].rolling(window=20).mean()
-        df['ma60'] = df[price_col].rolling(window=60).mean()
 
-        pullback_threshold = 0.03
-        
-        ma20 = df["ma20"].iloc[-1].round(2)
-        ma60 = df["ma60"].iloc[-1].round(2)
-        price = df[price_col].iloc[-1].round(2)
+        # =========
+        # Config
+        # =========
+        trend_cfg = STRATEGY_CONFIG.trend
+        volume_cfg = STRATEGY_CONFIG.volume
+        rsi_cfg = STRATEGY_CONFIG.rsi
+        cci_cfg = STRATEGY_CONFIG.cci
 
-        if price > ma20 > ma60:
-            trend =  TrendType.UPTREND
-        elif price > ma60:
+        ma_short_window = 20
+        ma_long_window = 60
+        resistance_window = trend_cfg.resistance_window
+
+        pullback_threshold = trend_cfg.pullback_threshold
+        breakout_buffer = trend_cfg.breakout_buffer
+
+        # =========
+        # MA
+        # =========
+        df["ma_short"] = df[self.PRICE_COL].rolling(window=ma_short_window).mean()
+        df["ma_long"] = df[self.PRICE_COL].rolling(window=ma_long_window).mean()
+
+        price = round(df[self.PRICE_COL].iloc[-1], 2)
+        prev_price = round(df[self.PRICE_COL].iloc[-2], 2)
+
+        ma_short = round(df["ma_short"].iloc[-1], 2)
+        ma_long = round(df["ma_long"].iloc[-1], 2)
+
+        # =========
+        # Trend
+        # =========
+        if price > ma_short > ma_long:
+            trend = TrendType.UPTREND
+        elif price > ma_long:
             trend = TrendType.NEUTRAL
         else:
             trend = TrendType.DOWNTREND
 
-        prev_price = df[price_col].iloc[-2].round(2)
-        resistance = max(df[price_col].iloc[-20:])
+        # =========
+        # Structure
+        # =========
+        resistance = df[self.PRICE_COL].iloc[-resistance_window:].max()
 
         pullback = (
-            price < ma20 and
-            price > ma60 and
-            (ma20 - price) / ma20 <= pullback_threshold
+            trend == TrendType.UPTREND and
+            price < ma_short and
+            price > ma_long and
+            (ma_short - price) / ma_short <= pullback_threshold
         )
 
         breakout = (
             prev_price <= resistance and
-            price > resistance * (1 + STRATEGY_CONFIG.trend.breakout_buffer)
+            price > resistance * (1 + breakout_buffer)
         )
+
+        # =========
+        # Timing Indicators
+        # =========
+        rsi_series = self.compute_rsi(df, self.PRICE_COL, n=14)
+        cci_series = self.compute_cci(
+            df,
+            self.HIGH_COL,
+            self.LOW_COL,
+            self.PRICE_COL,
+            n=20
+        )
+
+        rsi_value = round(rsi_series.iloc[-1], 2) if rsi_series is not None else None
+        cci_value = round(cci_series.iloc[-1], 2) if cci_series is not None else None
+
+        # =========
+        # Range Filter
+        # =========
+        rsi_in_range = (
+            rsi_value is not None and
+            rsi_cfg.min <= rsi_value <= rsi_cfg.max
+        )
+
+        cci_in_range = (
+            cci_value is not None and
+            cci_cfg.min <= cci_value <= cci_cfg.max
+        )
+
         return {
             "price": price,
-            "ma20": ma20,
-            "ma60": ma60,
+            "ma_short": ma_short,
+            "ma_long": ma_long,
             "trend": trend,
             "pullback": pullback,
             "breakout": breakout,
-            "rsi": self.compute_rsi(df, price_col).iloc[-1].round(2),
-            "cci": self.compute_cci(df, 'high', 'low', price_col).iloc[-1].round(2),
+            "rsi": rsi_value,
+            "rsi_in_range": rsi_in_range,
+            "cci": cci_value,
+            "cci_in_range": cci_in_range,
         }

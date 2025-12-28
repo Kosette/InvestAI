@@ -12,7 +12,6 @@ STRATEGY_CONFIG_PATH = "./conf/strategy.yaml"
 # ======================
 # 监控与策略参数配置
 # ======================
-
 class TrendConfig(BaseModel):
     pullback_threshold: float = Field(..., description="回调幅度")
     resistance_window: int = Field(..., description="阻力位计算窗口")
@@ -23,16 +22,17 @@ class VolumeConfig(BaseModel):
     ma_window: int
     min_ratio: float = Field(..., description="volume > volume_ma * ratio")
 
+
 class RangeIndicatorConfig(BaseModel):
     min: float
     max: float
+
 
 class StrategyConfig(BaseModel):
     trend: TrendConfig
     volume: VolumeConfig
     rsi: RangeIndicatorConfig
     cci: RangeIndicatorConfig
-
 
 
 class Config:
