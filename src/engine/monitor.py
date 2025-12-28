@@ -3,7 +3,7 @@ from .signal_engine import SignalEngine
 from .index_engine import IndexEngine
 from notifiers.formater.index import format_index_trend_message
 from notifiers.formater.stock import format_trend_signal_message
-from notifiers.slack import send_slack_msg
+from notifiers.manager import notification_manager
 import time
 
 class StockMonitor:
@@ -21,7 +21,7 @@ class StockMonitor:
         })
         message = format_index_trend_message(result)
         logger.debug(message)
-        send_slack_msg(message)
+        notification_manager.notify(message)
 
 
     def check_stock(self, symbol: str, stock_name: str):
@@ -33,7 +33,7 @@ class StockMonitor:
         })
         message = format_trend_signal_message(result)
         logger.debug(message)
-        send_slack_msg(message)
+        notification_manager.notify(message)
 
 
     def run(self):

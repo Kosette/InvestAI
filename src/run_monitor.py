@@ -6,7 +6,7 @@ from tools.watch_list import load_watchlist
 from config import WATCHLIST_PATH, INDEX_POOL_PATH
 from log import logger
 from datetime import datetime
-from notifiers.slack import send_slack_msg
+from notifiers.manager import notification_manager
 
 def format_time_marker() -> str:
     date = datetime.now()
@@ -15,7 +15,7 @@ def format_time_marker() -> str:
 def start_monitor():
     marker = format_time_marker()
     logger.info(marker)
-    send_slack_msg(marker)
+    notification_manager.notify(marker)
     watchlist = load_watchlist(WATCHLIST_PATH)
     index_pool = load_index_pool(INDEX_POOL_PATH)   
     monitor = StockMonitor(
@@ -24,13 +24,12 @@ def start_monitor():
     )
     monitor.run()
 
-
 def start_scheduler():
-    
+    logger.info("启动定时任务调度器")
     scheduler = BlockingScheduler()
     scheduler.add_job(
         start_monitor,
-        CronTrigger(hour=14, minute=00),
+        CronTrigger(hour=20, minute=20),
         coalesce=True,
         misfire_grace_time=3600  # 允许 1 小时内补跑
     )

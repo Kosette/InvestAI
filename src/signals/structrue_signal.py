@@ -1,73 +1,62 @@
-from signals.base import BaseSignal
-from signals.base import TrendType
 from signals.base import BaseSignal, TrendType
 from config import STRATEGY_CONFIG
 
 
 class StructureSignal(BaseSignal):
 
-    PRICE_COL = "close"
-
     def evaluate(self, context: dict):
         df = context["kline"]
+        price_col = "close"
 
-        # =========
-        # 读取配置
-        # =========
-        trend_cfg = STRATEGY_CONFIG.trend
+        # ===== 配置读取 =====
+        ma_cfg = STRATEGY_CONFIG.trend.moving_averages
+        pullback_cfg = STRATEGY_CONFIG.trend.pullback
+        breakout_cfg = STRATEGY_CONFIG.trend.breakout
 
-        ma_short_window = 20
-        ma_long_window = 60
-        resistance_window = trend_cfg.resistance_window
+        short_ma = ma_cfg.short
+        long_ma = ma_cfg.long
 
-        pullback_threshold = trend_cfg.pullback_threshold
-        breakout_buffer = trend_cfg.breakout_buffer
+        # ===== 均线计算 =====
+        df["ma_short"] = df[price_col].rolling(window=short_ma).mean()
+        df["ma_long"] = df[price_col].rolling(window=long_ma).mean()
 
-        # =========
-        # 指标计算
-        # =========
-        df["ma_short"] = df[self.PRICE_COL].rolling(window=ma_short_window).mean()
-        df["ma_long"] = df[self.PRICE_COL].rolling(window=ma_long_window).mean()
+        price = df[price_col].iloc[-1]
+        prev_price = df[price_col].iloc[-2]
 
-        price = round(df[self.PRICE_COL].iloc[-1], 2)
-        prev_price = round(df[self.PRICE_COL].iloc[-2], 2)
+        ma_short_val = df["ma_short"].iloc[-1]
+        ma_long_val = df["ma_long"].iloc[-1]
 
-        ma_short = round(df["ma_short"].iloc[-1], 2)
-        ma_long = round(df["ma_long"].iloc[-1], 2)
-
-        # =========
-        # 趋势判断
-        # =========
-        if price > ma_short > ma_long:
+        # ===== 趋势判断 =====
+        if price > ma_short_val > ma_long_val:
             trend = TrendType.UPTREND
-        elif price > ma_long:
+        elif price > ma_long_val:
             trend = TrendType.NEUTRAL
         else:
             trend = TrendType.DOWNTREND
 
-        # =========
-        # 结构信号
-        # =========
-        resistance = df[self.PRICE_COL].iloc[-resistance_window:].max()
+        # ===== 回调判断（可配置开关） =====
+        pullback = False
+        if pullback_cfg.enabled:
+            pullback = (
+                price < ma_short_val
+                and price > ma_long_val
+                and (ma_short_val - price) / ma_short_val <= pullback_cfg.threshold
+            )
 
-        pullback = (
-            trend == TrendType.UPTREND and
-            price < ma_short and
-            price > ma_long and
-            (ma_short - price) / ma_short <= pullback_threshold
-        )
+        # ===== 突破判断 =====
+        resistance_window = breakout_cfg.resistance_window
+        resistance = df[price_col].iloc[-resistance_window:].max()
 
         breakout = (
-            prev_price <= resistance and
-            price > resistance * (1 + breakout_buffer)
+            prev_price <= resistance
+            and price > resistance * (1 + breakout_cfg.buffer)
         )
 
         return {
-            "price": price,
-            "ma_short": ma_short,
-            "ma_long": ma_long,
+            "price": round(price, 2),
+            "ma_short": round(ma_short_val, 2),
+            "ma_long": round(ma_long_val, 2),
             "trend": trend,
             "pullback": pullback,
             "breakout": breakout,
         }
-

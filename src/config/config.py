@@ -1,6 +1,6 @@
+from typing import Dict, List, Optional, Literal
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
@@ -8,34 +8,71 @@ LOG_PATH = "./logs"
 WATCHLIST_PATH = "./conf/watchlist.json"
 INDEX_POOL_PATH = "./conf/index_pool.json"
 STRATEGY_CONFIG_PATH = "./conf/strategy.yaml"
+CONFIG_PATH = "./conf/invest_ai.yaml"
 
-# ======================
-# 监控与策略参数配置
-# ======================
-class TrendConfig(BaseModel):
-    pullback_threshold: float = Field(..., description="回调幅度")
-    resistance_window: int = Field(..., description="阻力位计算窗口")
-    breakout_buffer: float = Field(..., description="突破缓冲")
+class SlackChannelConfig(BaseModel):
+    enabled: bool
+    type: Literal["slack"] = "slack"
 
+    token: str = Field(
+        ..., description="Slack Bot Token，通常从环境变量注入"
+    )
+    default_channel: str = Field(
+        ..., description="默认 Slack 频道"
+    )
 
-class VolumeConfig(BaseModel):
-    ma_window: int
-    min_ratio: float = Field(..., description="volume > volume_ma * ratio")
-
-
-class RangeIndicatorConfig(BaseModel):
-    min: float
-    max: float
+    message_format: Literal["markdown", "text"] = "markdown"
+    description: Optional[str] = None
 
 
-class StrategyConfig(BaseModel):
-    trend: TrendConfig
-    volume: VolumeConfig
-    rsi: RangeIndicatorConfig
-    cci: RangeIndicatorConfig
+class WebhookEndpointConfig(BaseModel):
+    name: str
+    url: str
 
 
-class Config:
-    SLACK_TOKEN = os.getenv("SLACK_TOKEN")
+class WebhookChannelConfig(BaseModel):
+    enabled: bool
+    type: Literal["webhook"] = "webhook"
+
+    endpoints: List[WebhookEndpointConfig]
+    description: Optional[str] = None
 
 
+class SMTPConfig(BaseModel):
+    host: str
+    port: int
+    username: str
+    password: str
+    use_tls: bool = True
+
+
+class EmailChannelConfig(BaseModel):
+    enabled: bool
+    type: Literal["email"] = "email"
+
+    smtp: SMTPConfig
+    from_: str = Field(
+        ..., alias="from", description="发件人地址"
+    )
+    to: List[str]
+
+    description: Optional[str] = None
+
+class ConsoleChannelConfig(BaseModel):
+    enabled: bool
+    type: Literal["console"] = "console"
+
+    description: Optional[str] = None
+
+NotificationChannelConfig = (
+    SlackChannelConfig
+    | WebhookChannelConfig
+    | EmailChannelConfig
+    | ConsoleChannelConfig
+)
+
+
+class NotificationConfig(BaseModel):
+    enabled: bool
+
+    channels: Dict[str, NotificationChannelConfig]
