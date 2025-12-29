@@ -1,4 +1,4 @@
-# InvestAI
+# InvestAI 🚀
 
 **An AI-powered investing assistant for everyday investors**
 
@@ -92,13 +92,13 @@ InvestAI 的作用是：
 
 ---
 
-## 示例策略（Strategy Example）
+## 示例策略规则
 
 InvestAI 并不是随意“感觉分析”，而是围绕**一套明确、可配置的交易规则**运行。
 
 下面是一个**示例趋势策略**，用于说明 InvestAI 是如何生成买入 / 卖出参考信号的。
 
-> ⚠️ 这是示例策略，并非唯一或最优方案
+> ⚠️ 这是示例策略规则，并非唯一或最优方案
 > 所有参数都可以根据个人风格调整
 
 ## 1.大盘趋势与市场环境
