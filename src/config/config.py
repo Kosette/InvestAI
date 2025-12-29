@@ -81,3 +81,11 @@ class NotificationConfig(BaseModel):
 class ScheduleConfig(BaseModel):
     hour: int = Field(..., ge=0, le=23)
     minute: int = Field(..., ge=0, le=59)
+
+
+class LLMConfig(BaseModel):
+    provider: str
+    base_model: str
+    reason_model: str
+    base_url: str
+    api_key: Optional[str] = None

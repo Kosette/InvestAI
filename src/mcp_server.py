@@ -3,11 +3,14 @@ from fastmcp import FastMCP
 from log import logger
 from tools.watch_list import add_to_watchlist, load_watchlist
 from config import WATCHLIST_PATH
-from utils.code import get_fullcode
+from utils.stock import get_fullcode
 from datacenter.market.stock import stock_data_source
 from notifiers.formater.stock import format_trend_signal_message
 from engine.signal_engine import SignalEngine
-
+from agents.strategy_editor import edit_strategy
+from agents.strategy_explainer import explain_strategy
+from config import STRATEGY_CONFIG_PATH, STRATEGY_CONFIG
+import yaml
 
 
 
@@ -65,6 +68,35 @@ async def get_watchlist():
     """
     watchlist = load_watchlist(WATCHLIST_PATH)
     return {"status": "ok", "watchlist": watchlist}
+
+
+@mcp.tool()
+async def explain_strategy():
+    """
+    解释策略
+
+    返回:
+    字典，包含策略解释。
+    """
+    strategy = explain_strategy(STRATEGY_CONFIG)
+    return {"status": "ok", "strategy": strategy}
+
+@mcp.tool()
+async def edit_strategy(user_input: str):
+    """
+    编辑策略
+
+    参数:
+        user_input: 用户输入的策略描述
+
+    返回:
+    字典，包含编辑后的策略。
+    """
+    with open(STRATEGY_CONFIG_PATH, "r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+        strategy = edit_strategy(raw, user_input)
+    return {"status": "ok", "strategy": strategy}
+
 
 # ----------- 启动服务器 ------------
 if __name__ == "__main__":

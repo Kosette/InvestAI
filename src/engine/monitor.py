@@ -5,6 +5,9 @@ from notifiers.formater.index import format_index_trend_message
 from notifiers.formater.stock import format_trend_signal_message
 from notifiers.manager import notification_manager
 import time
+from agents.index_explainer import explain_index_trend
+from agents.stock_explainer import explain_stock_trend
+from utils.json import to_pretty_json
 
 class StockMonitor:
     def __init__(self, watchlist: dict, index_pool: dict, config: dict = {}):
@@ -19,9 +22,7 @@ class StockMonitor:
         result.update({
             "name": index_name,
         })
-        message = format_index_trend_message(result)
-        logger.debug(message)
-        notification_manager.notify(message)
+        return result
 
 
     def check_stock(self, symbol: str, stock_name: str):
@@ -31,18 +32,28 @@ class StockMonitor:
         result.update({
             "name": stock_name,
         })
-        message = format_trend_signal_message(result)
+        message = explain_stock_trend(result)
         logger.debug(message)
-        notification_manager.notify(message)
+        notification_manager.notify(f"""
+        {message}\n━━━━━━━━━━━━━━━━
+        """)
 
 
     def run(self):
+        index_result = []
         for name, symbol in self.index_pool.items():
             try:
-                self.check_index(symbol, name)
+                result = self.check_index(symbol, name)
+                index_result.append(result)
                 time.sleep(1)
             except Exception as e:
                 logger.exception(f"Error processing {symbol}: {e}")
+        
+        message = explain_index_trend(index_result)
+        # logger.debug(message)
+        notification_manager.notify(f"""
+        {message}\n━━━━━━━━━━━━━━━━
+        """)
 
         for name, symbol in self.watchlist.items():
             try:

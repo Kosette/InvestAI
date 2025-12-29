@@ -1,6 +1,8 @@
 from notifiers.formater.base import get_trend_emoji
 from signals.base import TrendType
 from config import STRATEGY_CONFIG
+from utils.json import to_pretty_json
+
 
 
 def format_index_trend_message(data: dict) -> str:

@@ -1,7 +1,7 @@
 import yaml
 from pathlib import Path
 from .strategy import StrategyConfig
-from .config import NotificationConfig, ScheduleConfig
+from .config import NotificationConfig, ScheduleConfig, LLMConfig
 import os
 import re
 
@@ -65,3 +65,11 @@ def load_schedule_config(path: str | Path) -> ScheduleConfig:
         raw = yaml.safe_load(f)
     
     return ScheduleConfig.model_validate(raw["schedule"])
+
+
+def load_llm_config(path: str | Path) -> LLMConfig:
+    with open(path, "r", encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+    # 注入环境变量
+    raw = inject_env_vars(raw)
+    return LLMConfig.model_validate(raw["llm"])

@@ -1,10 +1,17 @@
-# =====================
-# 通知系统配置
-# =====================
+llm:
+  provider: openai
+  base_model: qwen-flash
+  reason_model: qwen-plus
+  base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  api_key: ${OPENAI_API_KEY}
 
 schedule:
   hour: 14
   minute: 05
+
+# =====================
+# 通知系统配置
+# =====================
 
 notification:
   enabled: true

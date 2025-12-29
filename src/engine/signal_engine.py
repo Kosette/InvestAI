@@ -12,7 +12,7 @@ class SignalEngine:
         context["kline"] = stock_data_source.get_kline(symbol)
         structure_signal = StructureSignal()
         structure_data = structure_signal.evaluate(context)
-        logger.debug(structure_data)
+        # logger.debug(structure_data)
         signal = TimingSignal()
         data = signal.evaluate(context)
         structure_data.update(data)
