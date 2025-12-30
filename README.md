@@ -287,7 +287,7 @@ InvestAI 可以通过 **Docker 一键部署**，无需复杂环境配置。
 请确保已安装：
 
 - Docker
-- [Cherry Studio](https://www.cherry-ai.com/)
+- [Cherry Studio](https://www.cherry-ai.com/)（提供 GUI 界面）
 
 ---
 
