@@ -1,9 +1,26 @@
 # InvestAI 🚀
 
+![logo.png](./docs/logo.png)
 **An AI-powered investing assistant for everyday investors**
 
 > AI helps you stay rational.
 > Decisions are still yours.
+
+## 效果示例
+
+**通知效果**
+<video width="800" controls>
+
+  <source src="./docs/notfication_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+**对话效果**
+<video width="800" controls>
+
+  <source src="./docs/chat_demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## 项目简介
 
@@ -244,12 +261,6 @@ InvestAI 可以通过 **Docker 一键部署**，无需复杂环境配置。
 
 - **后台定时监控**：替你持续盯规则、发提醒
 - **实时对话分析**：通过 AI 对话随时查看状态、调整策略
-
-它不下单、不预测，只负责把**规则看到的状态**讲清楚。
-
----
-
-## 一、系统能做什么
 
 ### 1️⃣ 定时任务监控（无人值守）
 
