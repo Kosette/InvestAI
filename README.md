@@ -8,19 +8,9 @@
 
 ## 效果示例
 
-**通知效果**
-<video width="800" controls>
+**通知效果**: `./docs/notfication_demo.mp4`
 
-  <source src="./docs/notfication_demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-
-**对话效果**
-<video width="800" controls>
-
-  <source src="./docs/chat_demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+**对话效果**: `./docs/chat_demo.mp4`
 
 ## 项目简介
 
