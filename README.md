@@ -343,12 +343,12 @@ docker ps
 
 正常情况下可以看到 InvestAI 服务正在运行：
 
-![docker_ps.png](docker_ps.png)
+![docker_ps.png](./docs/docker_ps.png)
 
 通知示例（Slack）：
 
-![slack_notification.png](slack_notification.png)
-![slack_notification_2.png](slack_notification_2.png)
+![slack_notification.png](./docs/slack_notification.png)
+![slack_notification_2.png](./docs/slack_notification_2.png)
 
 ---
 
@@ -371,8 +371,8 @@ Content-Type=application/json
 Accept=application/json, text/event-stream
 ```
 
-![add_mcp.png](add_mcp.png)
-![add_mcp_2.png](add_mcp_2.png)
+![add_mcp.png](./docs/add_mcp.png)
+![add_mcp_2.png](./docs/add_mcp_2.png)
 
 ---
 
@@ -382,7 +382,7 @@ Accept=application/json, text/event-stream
 2. 选择 **默认助手**
 3. 添加后，右键助手 → **编辑助手**
 
-![add_agent.png](add_agent.png)
+![add_agent.png](./docs/add_agent.png)
 
 ---
 
@@ -466,7 +466,7 @@ Accept=application/json, text/event-stream
 
 填写完成后点击 **保存**。
 
-![edit_agent.png](edit_agent.png)
+![edit_agent.png](./docs/edit_agent.png)
 
 ---
 
@@ -476,7 +476,7 @@ Accept=application/json, text/event-stream
 - 启用 InvestAI
 - 点击右上角关闭接口窗口
 
-![open_mcp.png](open_mcp.png)
+![open_mcp.png](./docs/open_mcp.png)
 
 ---
 
@@ -485,7 +485,7 @@ Accept=application/json, text/event-stream
 选择刚创建的助手即可开始对话。
 当前测试模型为 **qwen-plus**，效果稳定，其他模型可自行尝试。
 
-![start_chat.png](start_chat.png)
+![start_chat.png](./docs/start_chat.png)
 
 ---
 
@@ -533,7 +533,3 @@ Accept=application/json, text/event-stream
 
 InvestAI 仅提供基于规则的投资分析与提醒，不构成任何投资建议。
 所有交易决策均由用户自行判断并承担风险。
-
-```
-
-```
