@@ -229,10 +229,11 @@ stock_data_source = StockDataSource()
 
 
 if __name__ == "__main__":
-    # res = stock_data_source.get_company_profile("600519")
-    # logger.info(orjson.dumps(res,option=orjson.OPT_INDENT_2).decode())
+    import orjson
+    res = stock_data_source.get_company_profile("300181")
+    logger.info(orjson.dumps(res,option=orjson.OPT_INDENT_2).decode())
     # df = stock_data_source.get_pe_pb("600519")
     # df = stock_data_source.get_all_a_shares()
     # df = stock_data_source.get_last_n_years_financials("600519")
-    df = stock_data_source.get_kline("sh600845")
-    logger.info(df.tail())
+    # df = stock_data_source.get_kline("sh600845")
+    # logger.info(df.tail())

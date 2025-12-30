@@ -9,9 +9,10 @@ services:
     volumes:
       - ../conf:/app/conf
 
+    env_file:
+      - ../.env
     environment:
       - TZ=Asia/Shanghai
-      - SLACK_TOKEN=${SLACK_TOKEN:-}
   invest-mcp:
     build:
       context: ..
@@ -24,6 +25,7 @@ services:
     ports:
       - 8888:8888
 
+    env_file:
+      - ../.env
     environment:
       - TZ=Asia/Shanghai
-      - SLACK_TOKEN=${SLACK_TOKEN:-}

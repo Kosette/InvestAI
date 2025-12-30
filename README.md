@@ -237,6 +237,62 @@ cci:
 - ❌ 希望完全交给程序交易的人
 - ❌ 专业量化或高频交易场景
 
+## 部署与功能说明
+
+明白了，我帮你把部署和功能说明整理成一个自然、拟人化、冷静老手风格的版本，兼顾两大功能模块和 Docker + GUI 的部署方式：
+
+---
+
+## 部署与功能说明
+
+InvestAI 可以通过 Docker 快速部署，无需复杂环境配置，运行后即可开始监控和分析股票。系统主要提供两类功能，满足不同使用场景：
+
+1. **定时任务监控**
+
+   - 按你设定的周期，持续跟踪关注的股票列表
+   - 支持将分析结果和提醒推送到 Slack、飞书、企业微信等
+   - 让你即便不盯盘，也能随时掌握规则触发状态
+
+2. **实时交互分析**
+
+   - 可随时查看当前监控规则和个股分析结果
+   - 根据个人需求调整策略参数
+   - 支持管理和更新观察列表，实时生成分析与趋势信号
+   - 通过 Cherry Studio 提供的 GUI，操作直观、可视化清晰
+
+快速开始
+确保电脑上已安装 Docker 和 [Cherry Studio](https://www.cherry-ai.com/)。
+
+1. 克隆 InvestAI 仓库：
+
+   ```bash
+   git clone https://github.com/flingjie/InvestAI.git
+   cd InvestAI
+   ```
+
+2. 修改配置文件
+
+   - copy .env.example to .env
+   - 编辑 `.env`，
+     - 配置大模型 API Key
+   - 编辑 `invest_ai.yaml`，
+     - 设置定时任务执行周期
+     - 配置 Slack、飞书、企业微信等通知渠道
+   - 编辑 `watchlist.json`，自定义股票关注列表
+
+3. 进入 docker 目录，构建并运行容器：
+
+   ```bash
+   cd docker
+   docker-compose up -d
+   ```
+
+4. 打开 Cherry Studio， 连接到 InvestAI MCP：
+
+   - 点击 "Add Connection"
+   - 输入容器名称：`investai_cherry_studio_1`
+   - 点击 "Connect"
+
 ## 免责声明
 
 InvestAI 仅提供基于规则的投资分析与提醒，不构成任何投资建议。
