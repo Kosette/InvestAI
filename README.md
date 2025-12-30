@@ -347,7 +347,9 @@ docker ps
 
 通知示例（Slack）：
 
+**📣 大盘趋势通知**
 ![slack_notification.png](./docs/slack_notification.png)
+**📣 个股趋势通知**
 ![slack_notification_2.png](./docs/slack_notification_2.png)
 
 ---
