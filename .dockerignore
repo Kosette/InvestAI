@@ -1,0 +1,5 @@
+conf/
+docs/
+.git
+.env
+.env.example
