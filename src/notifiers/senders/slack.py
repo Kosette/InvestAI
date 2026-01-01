@@ -3,8 +3,6 @@ from config.config import SlackChannelConfig
 from .base import BaseChannelSender
 from slack_sdk.errors import SlackApiError
 import json
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
 from loguru import logger
 
 

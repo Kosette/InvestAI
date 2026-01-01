@@ -8,11 +8,13 @@ services:
 
     volumes:
       - ../conf:/app/conf
+      - ../logs:/app/logs
 
     env_file:
       - ../.env
     environment:
       - TZ=Asia/Shanghai
+      
   invest-mcp:
     build:
       context: ..
@@ -22,6 +24,7 @@ services:
 
     volumes:
       - ../conf:/app/conf
+      - ../logs:/app/logs
     ports:
       - 8888:8888
 
@@ -29,3 +32,10 @@ services:
       - ../.env
     environment:
       - TZ=Asia/Shanghai
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

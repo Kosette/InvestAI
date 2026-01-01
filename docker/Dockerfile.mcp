@@ -1,10 +1,12 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm
 
-USER root
+# 创建非 root 用户
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libstdc++6 \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -18,5 +20,16 @@ ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN uv sync --frozen --no-install-project
+
+# 创建日志目录并设置权限
+RUN mkdir -p /app/logs /app/conf && \
+    chown -R appuser:appuser /app
+
+# 切换到非 root 用户
+USER appuser
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8888/ || exit 1
 
 CMD ["/app/run_mcp.sh"]
