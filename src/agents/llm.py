@@ -13,8 +13,11 @@ def get_response_by_llm(message, model_name:str=LLM_CONFIG.base_model):
             api_key=LLM_CONFIG.api_key,
         )
         return response.choices[0].message.content
+    except ValueError as e:
+        logger.error(f"LLM配置错误: {e}")
+        raise
     except Exception as e:
-        logger.opt(exception=e).exception(e)
+        logger.exception(f"调用LLM失败: {e}")
         return None
 
 

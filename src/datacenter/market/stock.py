@@ -22,10 +22,13 @@ class StockDataSource:
             if period == "daily":
                 df = ak.stock_zh_a_daily(symbol=symbol, start_date="20200101", adjust=adjust)
             else:
-                raise ValueError(f"Unsupported period: {period}")
+                raise ValueError(f"不支持的周期类型: {period}")
             return df
+        except ValueError:
+            # 参数错误，重新抛出
+            raise
         except Exception as e:
-            logger.opt(exception=e).error(f"Error fetching Kline: {e}")
+            logger.exception(f"获取股票 {symbol} K线数据失败: {e}")
             return pd.DataFrame()
 
     def get_last_n_years_financials(self, symbol: str, n: int = 3) -> pd.DataFrame:
@@ -144,10 +147,10 @@ class StockDataSource:
             if not df.empty:
                 return df
             else:
-                logger.warning(f"未获取到 {symbol} 的财务指标数据。")
+                logger.warning(f"未获取到 {symbol} 的财务指标数据")
                 return {}
         except Exception as e:
-            logger.error(f"Error fetching financials: {e}")
+            logger.exception(f"获取股票 {symbol} 财务指标失败: {e}")
             return {}
 
     # 获取个股概要信息
@@ -178,10 +181,10 @@ class StockDataSource:
                 info_dict = company_info_df.set_index('item')['value'].to_dict()
                 return info_dict # 返回字典形式
             else:
-                logger.warning(f"未获取到 {symbol} 的东方财富个股基本情况。")
+                logger.warning(f"未获取到 {symbol} 的公司基本信息")
                 return None
         except Exception as e:
-            logger.error(f"获取 {symbol} 东方财富个股基本情况失败: {e}")
+            logger.exception(f"获取股票 {symbol} 公司信息失败: {e}")
             return None
 
 
@@ -201,7 +204,7 @@ class StockDataSource:
             df = ak.stock_value_em(symbol=symbol)
             return df
         except Exception as e:
-            logger.error(f"Error fetching PE/PB: {e}")
+            logger.exception(f"获取股票 {symbol} PE/PB数据失败: {e}")
             return pd.DataFrame()
     
     def get_all_a_shares(self) -> pd.DataFrame:
@@ -221,7 +224,7 @@ class StockDataSource:
             stock_list_df = ak.stock_info_a_code_name()
             return stock_list_df
         except Exception as e:
-            logger.error(f"获取A股股票列表失败: {e}")
+            logger.exception(f"获取A股股票列表失败: {e}")
             return pd.DataFrame()
 
 
