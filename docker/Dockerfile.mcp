@@ -19,4 +19,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN uv sync --frozen --no-install-project
 
+EXPOSE 8888
+
 CMD ["/app/run_mcp.sh"]

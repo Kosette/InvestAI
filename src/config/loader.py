@@ -49,21 +49,20 @@ def load_strategy_config(path: str | Path) -> StrategyConfig:
     return StrategyConfig(**data)
 
 
-
 def load_notification_config(path: str) -> NotificationConfig:
     with open(path, "r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
-    
+
     # 注入环境变量
     raw = inject_env_vars(raw)
-    
+
     return NotificationConfig.model_validate(raw["notification"])
 
 
 def load_schedule_config(path: str | Path) -> ScheduleConfig:
     with open(path, "r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
-    
+
     return ScheduleConfig.model_validate(raw["schedule"])
 
 

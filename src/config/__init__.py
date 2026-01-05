@@ -1,5 +1,10 @@
 from .config import *
-from .loader import load_strategy_config, load_notification_config, load_schedule_config, load_llm_config
+from .loader import (
+    load_strategy_config,
+    load_notification_config,
+    load_schedule_config,
+    load_llm_config,
+)
 
 
 STRATEGY_CONFIG = load_strategy_config(STRATEGY_CONFIG_PATH)

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 from enum import Enum
 
+
 class TrendType(Enum):
     UPTREND = "上升趋势，可以考虑买入"
     NEUTRAL = "建议观望"
@@ -9,7 +10,6 @@ class TrendType(Enum):
 
 
 class BaseSignal(ABC):
-
     @abstractmethod
     def evaluate(self, context: Dict[str, Any]) -> dict:
         """

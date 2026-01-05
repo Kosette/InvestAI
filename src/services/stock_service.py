@@ -1,9 +1,10 @@
-import pandas as pd
-from typing import List, Dict, Any
-from datacenter.stock import stock_data_source, StockDataSource
-from log import logger
+from typing import Any, Dict
+
+from datacenter.stock import StockDataSource, stock_data_source
+
 from config import Config
-import numpy as np
+from log import logger
+
 
 class StockAnalysisService:
     """
@@ -14,7 +15,13 @@ class StockAnalysisService:
     def __init__(self, data_source: StockDataSource = stock_data_source):
         self.data_source: StockDataSource = data_source
 
-    def calc_momentum(self, symbol: str, period: str = "daily", window: int = 20, price_col: str = "收盘") -> Dict[str, Any]:
+    def calc_momentum(
+        self,
+        symbol: str,
+        period: str = "daily",
+        window: int = 20,
+        price_col: str = "收盘",
+    ) -> Dict[str, Any]:
         """
         基于K线计算股票动量指标
         :param symbol: 股票代码
@@ -26,16 +33,18 @@ class StockAnalysisService:
             return {}
 
         # 计算简单动量：最近收盘价 / N日均价
-        df['MA'] = df[price_col].rolling(window=window).mean()
-        df['momentum'] = df[price_col] / df['MA'] - 1
+        df["MA"] = df[price_col].rolling(window=window).mean()
+        df["momentum"] = df[price_col] / df["MA"] - 1
         latest = df.iloc[-1]
         return {
-            "momentum": latest['momentum'],
+            "momentum": latest["momentum"],
             "close": latest[price_col],
-            "MA": latest['MA']
+            "MA": latest["MA"],
         }
-    
-    def compute_rsi(self, symbol: str, period: str = "daily", n: int = 30, price_col: str = "close"):
+
+    def compute_rsi(
+        self, symbol: str, period: str = "daily", n: int = 30, price_col: str = "close"
+    ):
         """
         基于 pandas DataFrame 计算 RSI（简单平均版本）
         df: 包含收盘价的 DataFrame
@@ -68,7 +77,7 @@ class StockAnalysisService:
             logger.error(f"Error computing RSI: {e}")
             return None
 
-    
+
 if __name__ == "__main__":
     service = StockAnalysisService()
     symbol = "600519"  # 示例股票
@@ -76,4 +85,3 @@ if __name__ == "__main__":
     # report = service.compute_rsi(symbol)
     # report = service.check_stock(symbol)
     # logger.info(report)
-

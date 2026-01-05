@@ -5,7 +5,6 @@ from config import NOTIFICATION_CONFIG, NotificationConfig
 
 
 class NotificationManager:
-
     def __init__(self, config: NotificationConfig):
         self.config = config
 
@@ -28,6 +27,7 @@ class NotificationManager:
                 raise ValueError(f"Unsupported channel type: {channel.type}")
 
             sender.send(channel, message)
+
 
 notification_manager = NotificationManager(NOTIFICATION_CONFIG)
 

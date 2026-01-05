@@ -6,7 +6,6 @@ from config import STRATEGY_CONFIG
 
 
 class TimingSignal(BaseSignal):
-
     # =====================
     # 指标计算
     # =====================
@@ -62,9 +61,7 @@ class TimingSignal(BaseSignal):
         cci_cfg = STRATEGY_CONFIG.cci
 
         # ===== 成交量 =====
-        df["vol_ma"] = df["volume"].rolling(
-            window=volume_cfg.ma_window
-        ).mean()
+        df["vol_ma"] = df["volume"].rolling(window=volume_cfg.ma_window).mean()
 
         volume = df["volume"].iloc[-1]
         volume_ma = df["vol_ma"].iloc[-1]
@@ -72,9 +69,7 @@ class TimingSignal(BaseSignal):
         volume_ok = volume >= volume_ma * volume_cfg.min_ratio
 
         # ===== RSI =====
-        rsi_series = self.compute_rsi(
-            df, price_col, n=volume_cfg.ma_window
-        )
+        rsi_series = self.compute_rsi(df, price_col, n=volume_cfg.ma_window)
         rsi_val = rsi_series.iloc[-1]
 
         rsi_ok = rsi_cfg.min <= rsi_val <= rsi_cfg.max

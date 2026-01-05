@@ -9,21 +9,24 @@ from datetime import datetime
 from config import SCHEDULE_CONFIG
 from notifiers.manager import notification_manager
 
+
 def format_time_marker() -> str:
     date = datetime.now()
     return f"=== {date.strftime('%Y-%m-%d')} ==="
+
 
 def start_monitor():
     marker = format_time_marker()
     logger.info(marker)
     notification_manager.notify(marker)
     watchlist = load_watchlist(WATCHLIST_PATH)
-    index_pool = load_index_pool(INDEX_POOL_PATH)   
+    index_pool = load_index_pool(INDEX_POOL_PATH)
     monitor = StockMonitor(
         watchlist=watchlist,
         index_pool=index_pool,
     )
     monitor.run()
+
 
 def start_scheduler():
     logger.info("启动定时任务调度器")
@@ -32,7 +35,7 @@ def start_scheduler():
         start_monitor,
         CronTrigger(hour=SCHEDULE_CONFIG.hour, minute=SCHEDULE_CONFIG.minute),
         coalesce=True,
-        misfire_grace_time=3600  # 允许 1 小时内补跑
+        misfire_grace_time=3600,  # 允许 1 小时内补跑
     )
     scheduler.start()
 

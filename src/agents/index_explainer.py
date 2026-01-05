@@ -3,9 +3,10 @@ from .llm import get_response_by_llm
 from utils.json import to_pretty_json
 
 
-
 def explain_index_trend(current_state: dict):
-    prompt = get_prompt_from_template("index_explainer.md", {"current_state":to_pretty_json(current_state)})
+    prompt = get_prompt_from_template(
+        "index_explainer.md", {"current_state": to_pretty_json(current_state)}
+    )
     response = get_response_by_llm(prompt)
     return response
 
@@ -19,7 +20,7 @@ if __name__ == "__main__":
             "trend": "建议观望",
             "pullback": False,
             "breakout": False,
-            "name": "沪深300"
+            "name": "沪深300",
         },
         {
             "price": 7458.84,
@@ -28,7 +29,7 @@ if __name__ == "__main__":
             "trend": "建议观望",
             "pullback": False,
             "breakout": False,
-            "name": "中证500"
+            "name": "中证500",
         },
         {
             "price": 7605.53,
@@ -37,7 +38,7 @@ if __name__ == "__main__":
             "trend": "建议观望",
             "pullback": False,
             "breakout": False,
-            "name": "中证1000"
-        }
-        ]
+            "name": "中证1000",
+        },
+    ]
     print(explain_index_trend(current_state))

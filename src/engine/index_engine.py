@@ -9,16 +9,18 @@ class IndexEngine:
         context = {}
         context["kline"] = index_data_source.get_kline(index_code)
         signal = StructureSignal()
-        context['result'] = signal.evaluate(context)
+        context["result"] = signal.evaluate(context)
         return context
 
 
 if __name__ == "__main__":
     index_engine = IndexEngine()
     context = index_engine.evaluate("sh000300")
-    result = context['result']
-    result.update({
-        "name": "沪深300",
-    })
+    result = context["result"]
+    result.update(
+        {
+            "name": "沪深300",
+        }
+    )
     message = format_index_trend_message(result)
     logger.debug(message)

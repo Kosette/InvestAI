@@ -1,15 +1,19 @@
-from .prompts.helper import get_prompt_from_template
-from .llm import get_response_by_llm
-import json
 import yaml
+
+from config import LLM_CONFIG, STRATEGY_CONFIG_PATH
 from utils.json import to_pretty_json
-from config import STRATEGY_CONFIG, LLM_CONFIG, STRATEGY_CONFIG_PATH
+
+from .llm import get_response_by_llm
+from .prompts.helper import get_prompt_from_template
 
 
 def edit_strategy(current_strategy: dict, user_input: str):
-
-    prompt = get_prompt_from_template("strategy_editor.md", {
-        "current_strategy":to_pretty_json(current_strategy), "user_input":user_input}
+    prompt = get_prompt_from_template(
+        "strategy_editor.md",
+        {
+            "current_strategy": to_pretty_json(current_strategy),
+            "user_input": user_input,
+        },
     )
     response = get_response_by_llm(prompt, model_name=LLM_CONFIG.base_model)
     return response

@@ -1,7 +1,9 @@
+from datetime import datetime
+
 import akshare as ak
 import pandas as pd
+
 from log import logger
-from datetime import datetime
 
 
 class StockDataSource:
@@ -10,7 +12,9 @@ class StockDataSource:
     提供 Kline、财务指标、公司资料等原始数据访问接口
     """
 
-    def get_kline(self, symbol: str, period: str = "daily", adjust: str = "qfq") -> pd.DataFrame:
+    def get_kline(
+        self, symbol: str, period: str = "daily", adjust: str = "qfq"
+    ) -> pd.DataFrame:
         """
         获取股票历史 K 线数据
         :param symbol: 股票代码，例如 '000001'
@@ -20,12 +24,17 @@ class StockDataSource:
         """
         try:
             if period == "daily":
-                df = ak.stock_zh_a_daily(symbol=symbol, start_date="20200101", adjust=adjust)
+                df = ak.stock_zh_a_daily(
+                    symbol=symbol, start_date="20200101", adjust=adjust
+                )
             else:
-                raise ValueError(f"Unsupported period: {period}")
+                raise ValueError(f"不支持的周期类型: {period}")
             return df
+        except ValueError:
+            # 参数错误，重新抛出
+            raise
         except Exception as e:
-            logger.opt(exception=e).error(f"Error fetching Kline: {e}")
+            logger.exception(f"获取股票 {symbol} K线数据失败: {e}")
             return pd.DataFrame()
 
     def get_last_n_years_financials(self, symbol: str, n: int = 3) -> pd.DataFrame:
@@ -38,7 +47,11 @@ class StockDataSource:
         try:
             data = []
             for year in range(years):
-                df = ak.stock_zh_a_financial(symbol=symbol, period="yearly", start_date=f"{start_year}{year+1}0101")
+                df = ak.stock_zh_a_financial(
+                    symbol=symbol,
+                    period="yearly",
+                    start_date=f"{start_year}{year + 1}0101",
+                )
                 data.append(df)
             return pd.concat(data, axis=0)
         except Exception as e:
@@ -139,15 +152,17 @@ class StockDataSource:
         """
         try:
             start_year = str(datetime.now().year - n)
-            df = ak.stock_financial_analysis_indicator(symbol=symbol, start_year=start_year)
+            df = ak.stock_financial_analysis_indicator(
+                symbol=symbol, start_year=start_year
+            )
             # 可以根据需要提取最新一行数据
             if not df.empty:
                 return df
             else:
-                logger.warning(f"未获取到 {symbol} 的财务指标数据。")
+                logger.warning(f"未获取到 {symbol} 的财务指标数据")
                 return {}
         except Exception as e:
-            logger.error(f"Error fetching financials: {e}")
+            logger.exception(f"获取股票 {symbol} 财务指标失败: {e}")
             return {}
 
     # 获取个股概要信息
@@ -155,7 +170,7 @@ class StockDataSource:
         """
         通过东方财富接口获取指定股票代码的公司基本信息。
         :param symbol: 股票代码，如 '600519' (贵州茅台)
-        :return: 
+        :return:
         {
             "最新": 1467.11,
             "股票代码": "600519",
@@ -173,42 +188,41 @@ class StockDataSource:
             # symbol: 股票代码
             # indicator: 用于指定获取信息的类型，这里用 '基本情况'
             company_info_df = ak.stock_individual_info_em(symbol=symbol)
-            
+
             if not company_info_df.empty:
-                info_dict = company_info_df.set_index('item')['value'].to_dict()
-                return info_dict # 返回字典形式
+                info_dict = company_info_df.set_index("item")["value"].to_dict()
+                return info_dict  # 返回字典形式
             else:
-                logger.warning(f"未获取到 {symbol} 的东方财富个股基本情况。")
+                logger.warning(f"未获取到 {symbol} 的公司基本信息")
                 return None
         except Exception as e:
-            logger.error(f"获取 {symbol} 东方财富个股基本情况失败: {e}")
+            logger.exception(f"获取股票 {symbol} 公司信息失败: {e}")
             return None
-
 
     def get_pe_pb(self, symbol: str) -> pd.DataFrame:
         """
-        获取估值指标 PE 和 PB 数据
-        :param symbol: 股票代码，如 '600519' (贵州茅台)
-        :return: 
-        数据日期    当日收盘价     当日涨跌幅           总市值          流通市值         总股本  ...    PE(TTM)      PE(静)       市净率      PEG值        市现率        市销率
-1908  2025-11-14  1456.60 -0.937173  1.824057e+12  1.824057e+12  1252270215  ...  20.261143  21.153844  7.095566  1.263247  21.151156  10.026399
-1909  2025-11-17  1471.00  0.988604  1.842089e+12  1.842089e+12  1252270215  ...  20.461445  21.362972  7.165713  1.275736  21.360257  10.125520
-1910  2025-11-18  1476.00  0.339905  1.848351e+12  1.848351e+12  1252270215  ...  20.530994  21.435586  7.190069  1.280072  21.432861  10.159937
-1911  2025-11-19  1471.01 -0.338076  1.842102e+12  1.842102e+12  1252270215  ...  20.461584  21.363117  7.165761  1.275744  21.360402  10.125589
-1912  2025-11-20  1467.11 -0.265124  1.837218e+12  1.837218e+12  1252270215  ...  20.407336  21.306479  7.146763  1.272362  21.303770  10.098744
+                获取估值指标 PE 和 PB 数据
+                :param symbol: 股票代码，如 '600519' (贵州茅台)
+                :return:
+                数据日期    当日收盘价     当日涨跌幅           总市值          流通市值         总股本  ...    PE(TTM)      PE(静)       市净率      PEG值        市现率        市销率
+        1908  2025-11-14  1456.60 -0.937173  1.824057e+12  1.824057e+12  1252270215  ...  20.261143  21.153844  7.095566  1.263247  21.151156  10.026399
+        1909  2025-11-17  1471.00  0.988604  1.842089e+12  1.842089e+12  1252270215  ...  20.461445  21.362972  7.165713  1.275736  21.360257  10.125520
+        1910  2025-11-18  1476.00  0.339905  1.848351e+12  1.848351e+12  1252270215  ...  20.530994  21.435586  7.190069  1.280072  21.432861  10.159937
+        1911  2025-11-19  1471.01 -0.338076  1.842102e+12  1.842102e+12  1252270215  ...  20.461584  21.363117  7.165761  1.275744  21.360402  10.125589
+        1912  2025-11-20  1467.11 -0.265124  1.837218e+12  1.837218e+12  1252270215  ...  20.407336  21.306479  7.146763  1.272362  21.303770  10.098744
         """
         try:
             df = ak.stock_value_em(symbol=symbol)
             return df
         except Exception as e:
-            logger.error(f"Error fetching PE/PB: {e}")
+            logger.exception(f"获取股票 {symbol} PE/PB数据失败: {e}")
             return pd.DataFrame()
-    
+
     def get_all_a_shares(self) -> pd.DataFrame:
         """
         获取中国A股市场所有上市公司的股票列表。
         数据源：东方财富-A股实时行情
-        :return: 
+        :return:
                 code  name
             5446  920978  开特股份
             5447  920981  晶赛科技
@@ -221,7 +235,7 @@ class StockDataSource:
             stock_list_df = ak.stock_info_a_code_name()
             return stock_list_df
         except Exception as e:
-            logger.error(f"获取A股股票列表失败: {e}")
+            logger.exception(f"获取A股股票列表失败: {e}")
             return pd.DataFrame()
 
 
@@ -230,8 +244,9 @@ stock_data_source = StockDataSource()
 
 if __name__ == "__main__":
     import orjson
+
     res = stock_data_source.get_company_profile("300181")
-    logger.info(orjson.dumps(res,option=orjson.OPT_INDENT_2).decode())
+    logger.info(orjson.dumps(res, option=orjson.OPT_INDENT_2).decode())
     # df = stock_data_source.get_pe_pb("600519")
     # df = stock_data_source.get_all_a_shares()
     # df = stock_data_source.get_last_n_years_financials("600519")

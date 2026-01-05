@@ -3,7 +3,6 @@ from config import STRATEGY_CONFIG
 
 
 class StructureSignal(BaseSignal):
-
     def evaluate(self, context: dict):
         df = context["kline"]
         price_col = "close"
@@ -47,9 +46,8 @@ class StructureSignal(BaseSignal):
         resistance_window = breakout_cfg.resistance_window
         resistance = df[price_col].iloc[-resistance_window:].max()
 
-        breakout = (
-            prev_price <= resistance
-            and price > resistance * (1 + breakout_cfg.buffer)
+        breakout = prev_price <= resistance and price > resistance * (
+            1 + breakout_cfg.buffer
         )
 
         return {

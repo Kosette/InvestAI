@@ -1,12 +1,10 @@
 import akshare as ak
 import pandas as pd
+
 from log import logger
-import orjson
-from datetime import datetime
 
 
 class IndexDataSource:
-
     def get_kline(self, symbol: str, period: str = "daily") -> pd.DataFrame:
         try:
             if period == "daily":
@@ -17,7 +15,6 @@ class IndexDataSource:
         except Exception as e:
             logger.opt(exception=e).error(f"Error fetching Kline: {e}")
             return pd.DataFrame()
-
 
 
 index_data_source = IndexDataSource()

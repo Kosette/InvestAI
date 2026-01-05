@@ -4,7 +4,6 @@ from config import STRATEGY_CONFIG
 from utils.json import to_pretty_json
 
 
-
 def format_index_trend_message(data: dict) -> str:
     """
     将指数趋势监控结果格式化为 Slack / 飞书通知文案
@@ -18,7 +17,6 @@ def format_index_trend_message(data: dict) -> str:
     pullback = data.get("pullback")
     breakout = data.get("breakout")
 
-
     # === 结构描述 ===
     pullback_desc = "回调结构中" if pullback else "未处于回调结构"
     breakout_desc = "突破确认" if breakout else "未出现有效突破"
@@ -27,15 +25,9 @@ def format_index_trend_message(data: dict) -> str:
     if trend == TrendType.UPTREND:
         final_desc = "指数维持多头结构，对趋势策略形成正向支持。"
     elif trend == TrendType.DOWNTREND:
-        final_desc = (
-            "指数趋势偏弱，整体风险偏好下降，"
-            "需警惕系统性回撤风险。"
-        )
+        final_desc = "指数趋势偏弱，整体风险偏好下降，需警惕系统性回撤风险。"
     else:
-        final_desc = (
-            "指数处于震荡区间，多空分歧明显，"
-            "对个股趋势策略的支持力度有限。"
-        )
+        final_desc = "指数处于震荡区间，多空分歧明显，对个股趋势策略的支持力度有限。"
 
     # === 拼装消息 ===
     message = (

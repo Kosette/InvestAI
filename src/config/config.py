@@ -10,16 +10,13 @@ INDEX_POOL_PATH = "./conf/index_pool.json"
 STRATEGY_CONFIG_PATH = "./conf/strategy.yaml"
 CONFIG_PATH = "./conf/invest_ai.yaml"
 
+
 class SlackChannelConfig(BaseModel):
     enabled: bool
     type: Literal["slack"] = "slack"
 
-    token: str = Field(
-        ..., description="Slack Bot Token，通常从环境变量注入"
-    )
-    default_channel: str = Field(
-        ..., description="默认 Slack 频道"
-    )
+    token: str = Field(..., description="Slack Bot Token，通常从环境变量注入")
+    default_channel: str = Field(..., description="默认 Slack 频道")
 
     message_format: Literal["markdown", "text"] = "markdown"
     description: Optional[str] = None
@@ -51,18 +48,18 @@ class EmailChannelConfig(BaseModel):
     type: Literal["email"] = "email"
 
     smtp: SMTPConfig
-    from_: str = Field(
-        ..., alias="from", description="发件人地址"
-    )
+    from_: str = Field(..., alias="from", description="发件人地址")
     to: List[str]
 
     description: Optional[str] = None
+
 
 class ConsoleChannelConfig(BaseModel):
     enabled: bool
     type: Literal["console"] = "console"
 
     description: Optional[str] = None
+
 
 NotificationChannelConfig = (
     SlackChannelConfig

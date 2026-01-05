@@ -1,7 +1,6 @@
 import os
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from log import logger
 
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 # Initialize Jinja2 environment
 env = Environment(
@@ -12,9 +11,7 @@ env = Environment(
 )
 
 
-def get_prompt_from_template(
-    prompt_name: str, vars: dict
-) -> str:
+def get_prompt_from_template(prompt_name: str, vars: dict) -> str:
     try:
         # logger.debug(f"get prompt from template {prompt_name}")
         template = env.get_template(prompt_name)

@@ -32,8 +32,6 @@ def to_pretty_json(data: Any) -> str:
     """
     将 Python 对象安全序列化为可读 JSON 字符串
     """
-    return orjson.dumps(
-        data,
-        default=_json_default,
-        option=orjson.OPT_INDENT_2
-    ).decode("utf-8")
+    return orjson.dumps(data, default=_json_default, option=orjson.OPT_INDENT_2).decode(
+        "utf-8"
+    )

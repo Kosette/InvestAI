@@ -6,7 +6,6 @@ from notifiers.formater.stock import format_trend_signal_message
 
 
 class SignalEngine:
-
     def evaluate(self, symbol: str):
         context = {}
         context["kline"] = stock_data_source.get_kline(symbol)
@@ -16,13 +15,13 @@ class SignalEngine:
         signal = TimingSignal()
         data = signal.evaluate(context)
         structure_data.update(data)
-        context['result'] = structure_data
+        context["result"] = structure_data
         return context
 
 
 if __name__ == "__main__":
     signal_engine = SignalEngine()
     context = signal_engine.evaluate("sh603192")
-    result = context['result']
-    result['name'] = '润本股份'
+    result = context["result"]
+    result["name"] = "润本股份"
     logger.info(format_trend_signal_message(result))
