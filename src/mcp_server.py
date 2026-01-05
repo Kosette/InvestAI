@@ -1,5 +1,5 @@
 # server.py
-from fastmcp import FastMCP
+from fastmcp import FastMCP, Context
 from log import logger
 from tools.watch_list import add_to_watchlist, load_watchlist
 from config import WATCHLIST_PATH
@@ -13,6 +13,7 @@ from config import STRATEGY_CONFIG_PATH, STRATEGY_CONFIG
 import yaml
 import os
 from functools import wraps
+from typing import Optional
 
 
 mcp = FastMCP("InvestAI 🚀")
@@ -20,8 +21,48 @@ mcp = FastMCP("InvestAI 🚀")
 # 获取 MCP API Token
 MCP_API_TOKEN = os.getenv("MCP_API_TOKEN", "")
 
+def extract_token_from_headers(ctx: Optional[Context]) -> Optional[str]:
+    """
+    从HTTP请求头中提取认证token
+    
+    支持以下格式：
+    1. Authorization: Bearer <token>
+    2. X-API-Key: <token>
+    
+    参数:
+        ctx: FastMCP 上下文对象
+    
+    返回:
+        提取的token，如果未找到则返回None
+    """
+    if ctx is None or not hasattr(ctx, 'request_context'):
+        return None
+    
+    request_ctx = ctx.request_context
+    headers = getattr(request_ctx, 'headers', {})
+    
+    # 尝试从 Authorization header 获取 Bearer token
+    auth_header = headers.get('authorization') or headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        return auth_header[7:].strip()  # 移除 "Bearer " 前缀
+    
+    # 尝试从 X-API-Key header 获取
+    api_key = headers.get('x-api-key') or headers.get('X-API-Key')
+    if api_key:
+        return api_key.strip()
+    
+    return None
+
 def require_auth(func):
-    """简单的token认证装饰器"""
+    """
+    Token认证装饰器
+    
+    从HTTP请求头中提取token并验证：
+    - Authorization: Bearer <token>
+    - X-API-Key: <token>
+    
+    如果未设置MCP_API_TOKEN环境变量，仅记录警告不拦截（向后兼容）
+    """
     @wraps(func)
     async def wrapper(*args, **kwargs):
         # 如果没有设置 token，跳过验证（向后兼容）
@@ -29,23 +70,32 @@ def require_auth(func):
             logger.warning("MCP_API_TOKEN 未设置，建议配置以增强安全性")
             return await func(*args, **kwargs)
         
-        # 从 kwargs 中获取 token
-        token = kwargs.pop('token', None)
-        if token != MCP_API_TOKEN:
-            raise ValueError("认证失败：无效的 API token")
+        # 从上下文中提取token
+        ctx = kwargs.get('ctx')
+        token = extract_token_from_headers(ctx)
         
+        # 验证token
+        if token != MCP_API_TOKEN:
+            logger.warning(f"认证失败：token不匹配")
+            raise ValueError("认证失败：无效的 API token。请在请求头中设置 'Authorization: Bearer <token>' 或 'X-API-Key: <token>'")
+        
+        logger.info("Token认证通过")
         return await func(*args, **kwargs)
     return wrapper
 
 @mcp.tool()
 @require_auth
-async def analyze_stock_tool(code: str, token: str = None):
+async def analyze_stock_tool(code: str, ctx: Context = None):
     """
     分析特定code的股票
 
     参数:
         code: 股票代码（6位数字，或带sh/sz前缀）
-        token: API认证令牌（可选，如果设置了MCP_API_TOKEN环境变量则必需）
+
+    认证:
+        需要在HTTP请求头中提供token（如果设置了MCP_API_TOKEN环境变量）
+        - Authorization: Bearer <token>
+        - X-API-Key: <token>
 
     返回:
     字符串，包含股票分析结果。
@@ -77,13 +127,17 @@ async def analyze_stock_tool(code: str, token: str = None):
 
 @mcp.tool()
 @require_auth
-async def add_watchlist_tool(code: str, token: str = None):
+async def add_watchlist_tool(code: str, ctx: Context = None):
     """
     将特定股票code到关注列表
 
     参数:
         code: 股票代码（6位数字，或带sh/sz前缀）
-        token: API认证令牌（可选，如果设置了MCP_API_TOKEN环境变量则必需）
+
+    认证:
+        需要在HTTP请求头中提供token（如果设置了MCP_API_TOKEN环境变量）
+        - Authorization: Bearer <token>
+        - X-API-Key: <token>
 
     返回:
     字符串，包含成功信息。
@@ -109,12 +163,14 @@ async def add_watchlist_tool(code: str, token: str = None):
 
 @mcp.tool()
 @require_auth
-async def get_watchlist_tool(token: str = None):
+async def get_watchlist_tool(ctx: Context = None):
     """
     获取当前关注的股票列表
 
-    参数:
-        token: API认证令牌（可选，如果设置了MCP_API_TOKEN环境变量则必需）
+    认证:
+        需要在HTTP请求头中提供token（如果设置了MCP_API_TOKEN环境变量）
+        - Authorization: Bearer <token>
+        - X-API-Key: <token>
 
     返回:
     字符串，包含关注列表。
@@ -132,12 +188,14 @@ async def get_watchlist_tool(token: str = None):
 
 @mcp.tool()
 @require_auth
-async def analyze_watchlist_tool(token: str = None):
+async def analyze_watchlist_tool(ctx: Context = None):
     """
     批量分析关注列表中的所有股票
 
-    参数:
-        token: API认证令牌（可选，如果设置了MCP_API_TOKEN环境变量则必需）
+    认证:
+        需要在HTTP请求头中提供token（如果设置了MCP_API_TOKEN环境变量）
+        - Authorization: Bearer <token>
+        - X-API-Key: <token>
 
     返回:
     字符串，包含所有股票的分析结果。
@@ -174,12 +232,14 @@ async def analyze_watchlist_tool(token: str = None):
 
 @mcp.tool()
 @require_auth
-async def explain_strategy_tool(token: str = None):
+async def explain_strategy_tool(ctx: Context = None):
     """
     对当前策略配置进行可读解释
 
-    参数:
-        token: API认证令牌（可选，如果设置了MCP_API_TOKEN环境变量则必需）
+    认证:
+        需要在HTTP请求头中提供token（如果设置了MCP_API_TOKEN环境变量）
+        - Authorization: Bearer <token>
+        - X-API-Key: <token>
 
     返回:
     字符串，包含策略解释文本。
@@ -193,13 +253,17 @@ async def explain_strategy_tool(token: str = None):
 
 @mcp.tool()
 @require_auth
-async def edit_strategy_tool(user_input: str, token: str = None):
+async def edit_strategy_tool(user_input: str, ctx: Context = None):
     """
     根据用户输入更新策略配置
 
     参数:
         user_input: 用户输入的偏好或调整描述
-        token: API认证令牌（可选，如果设置了MCP_API_TOKEN环境变量则必需）
+
+    认证:
+        需要在HTTP请求头中提供token（如果设置了MCP_API_TOKEN环境变量）
+        - Authorization: Bearer <token>
+        - X-API-Key: <token>
 
     返回:
     字符串，包含编辑后的策略配置文本。

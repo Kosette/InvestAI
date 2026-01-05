@@ -36,17 +36,59 @@ MCP_API_TOKEN=your-secret-token-here
 - 如果未设置 `MCP_API_TOKEN`，系统会记录警告但不拦截请求
 - 建议生产环境设置强密码作为 token
 
-**API 调用**：
+**HTTP 请求头认证**：
+
+MCP 服务从 HTTP 请求头中提取 token，支持两种格式：
+
+```http
+# 方式一：Authorization Bearer Token
+Authorization: Bearer your-secret-token-here
+
+# 方式二：X-API-Key
+X-API-Key: your-secret-token-here
+```
+
+**API 调用示例**：
+
+使用 curl：
+```bash
+curl -X POST http://localhost:8888/mcp \
+  -H "Authorization: Bearer your-secret-token-here" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"analyze_stock_tool","params":{"code":"000001"},"id":1}'
+```
+
+使用 Python：
 ```python
-# 调用 MCP 工具时需要传递 token 参数
-await analyze_stock_tool(code="000001", token="your-secret-token-here")
+import requests
+
+headers = {
+    "Authorization": "Bearer your-secret-token-here",
+    "Content-Type": "application/json"
+}
+
+response = requests.post(
+    "http://localhost:8888/mcp",
+    json={"jsonrpc":"2.0","method":"get_watchlist_tool","params":{},"id":1},
+    headers=headers
+)
 ```
 
 **Cherry Studio 配置**：
+
 在 Cherry Studio 的 MCP 配置中添加请求头：
 ```
 Authorization=Bearer your-secret-token-here
 ```
+
+或使用：
+```
+X-API-Key=your-secret-token-here
+```
+
+**Nginx 集成**：
+
+详细的 Nginx 配置和集成说明请查看 `NGINX_INTEGRATION.md` 文档。
 
 ---
 
